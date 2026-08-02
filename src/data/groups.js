@@ -1,0 +1,18 @@
+export const GROUPS = [
+  'Famille Marzolla',
+  'Famille Erpicum',
+  'Famille Kenty',
+  'Collègues',
+  'Amis',
+  'Collègues professeurs',
+  'Amis de Benoît',
+  'RC Vallée du Geer',
+  'Amis d’Henri et Solveig',
+  'RC Liège Ville Mosane',
+  'Kiwanis',
+  'Cheese',
+  'Fraternité',
+  'École de Courcelles',
+  'École de Tamines',
+  'Autre',
+]
