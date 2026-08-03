@@ -1106,3 +1106,365 @@ input:focus, select:focus, textarea:focus { border-color: var(--passport-light);
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* ---------- Tour de contrôle ---------- */
+
+.tower-screen {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  padding: 2rem 3rem;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 1.8rem;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(229, 173, 61, 0.18),
+      transparent 28rem
+    ),
+    linear-gradient(
+      135deg,
+      #062f34 0%,
+      #0a555b 55%,
+      #083f45 100%
+    );
+  color: white;
+}
+
+.tower-screen__background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.tower-screen__route {
+  position: absolute;
+  width: 46vw;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  transform: rotate(-24deg);
+}
+
+.tower-screen__route::before,
+.tower-screen__route::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 84px;
+  height: 84px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.tower-screen__route::before {
+  left: 12%;
+}
+
+.tower-screen__route::after {
+  right: 15%;
+}
+
+.tower-screen__route--one {
+  top: 17%;
+  left: -8%;
+}
+
+.tower-screen__route--two {
+  top: 52%;
+  right: -9%;
+}
+
+.tower-screen__route--three {
+  bottom: 12%;
+  left: 14%;
+}
+
+.tower-header,
+.tower-message,
+.tower-stats,
+.tower-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.tower-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.tower-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tower-header__plane {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(229, 173, 61, 0.5);
+  border-radius: 50%;
+  background: rgba(229, 173, 61, 0.1);
+  color: #e5ad3d;
+  font-size: 2rem;
+  transform: rotate(-12deg);
+}
+
+.tower-header__brand small {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #e5ad3d;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.tower-header__brand h1 {
+  margin: 0;
+  color: white;
+  font-size: clamp(2.4rem, 4vw, 4.5rem);
+  line-height: 0.95;
+}
+
+.tower-header__status {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.tower-status {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid rgba(229, 173, 61, 0.36);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #efc56d;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.tower-status i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.tower-status--active {
+  color: #7ee0a8;
+}
+
+.tower-status--active i {
+  animation: towerPulse 1.4s ease-in-out infinite;
+}
+
+.tower-header time {
+  color: rgba(255, 255, 255, 0.78);
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.tower-message {
+  align-self: center;
+  justify-self: stretch;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 2rem;
+  min-height: 300px;
+  padding: 2.5rem 3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 29, 31, 0.78),
+      rgba(13, 50, 53, 0.72)
+    );
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.24),
+    inset 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+}
+
+.tower-message--priority {
+  border-color: rgba(229, 173, 61, 0.55);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93, 44, 7, 0.82),
+      rgba(121, 66, 13, 0.74)
+    );
+}
+
+.tower-message__icon {
+  display: grid;
+  place-items: center;
+  width: 150px;
+  height: 150px;
+  border: 1px solid rgba(229, 173, 61, 0.42);
+  border-radius: 50%;
+  background: rgba(229, 173, 61, 0.1);
+  font-size: 4rem;
+  animation: towerMessageAppear 700ms ease both;
+}
+
+.tower-message__content {
+  animation: towerMessageAppear 700ms ease both;
+}
+
+.tower-message__content small {
+  display: block;
+  margin-bottom: 0.7rem;
+  color: #e5ad3d;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.tower-message__content h2 {
+  max-width: 1100px;
+  margin: 0;
+  color: white;
+  font-size: clamp(2.6rem, 5vw, 6.2rem);
+  line-height: 1.05;
+}
+
+.tower-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.tower-stats article {
+  min-height: 145px;
+  padding: 1.2rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.tower-stats article span {
+  font-size: 1.9rem;
+}
+
+.tower-stats article strong {
+  color: white;
+  font-size: clamp(2rem, 3vw, 3.4rem);
+  line-height: 1;
+}
+
+.tower-stats article small {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.tower-footer {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tower-footer strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #e5ad3d;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+.tower-footer p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.tower-footer > small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+@keyframes towerPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
+}
+
+@keyframes towerMessageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1000px) {
+  .tower-screen {
+    padding: 1.4rem;
+    gap: 1.2rem;
+  }
+
+  .tower-header {
+    align-items: center;
+  }
+
+  .tower-header__plane {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
+  }
+
+  .tower-message {
+    min-height: 240px;
+    padding: 1.8rem;
+    gap: 1.4rem;
+  }
+
+  .tower-message__icon {
+    width: 110px;
+    height: 110px;
+    font-size: 3rem;
+  }
+
+  .tower-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tower-footer {
+    align-items: flex-start;
+  }
+}
