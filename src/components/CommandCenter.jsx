@@ -21,10 +21,55 @@ export default function CommandCenter({
 
   const [isSending, setIsSending] = useState(false)
 
+  const [resetConfirmationOpen, setResetConfirmationOpen] =
+  useState(false)
+
+const [resetConfirmationText, setResetConfirmationText] =
+  useState('')
+
   const selectedMessage =
     PRESET_TOWER_MESSAGES.find(
       message => message.id === selectedMessageId
     ) || null
+
+    async function resetAllEventData() {
+      if (!supabaseEnabled) {
+        window.alert('Supabase n’est pas connecté.')
+        return
+      }
+    
+      if (resetConfirmationText.trim().toUpperCase() !== 'RESET') {
+        window.alert('Écrivez exactement RESET pour confirmer.')
+        return
+      }
+    
+      setIsSending(true)
+    
+      const { error } = await supabase.rpc(
+        'reset_patricia_event_data',
+        {
+          p_pin: '1608',
+        }
+      )
+    
+      setIsSending(false)
+    
+      if (error) {
+        window.alert(
+          'La réinitialisation a échoué. Aucune donnée n’a été supprimée.'
+        )
+        return
+      }
+    
+      setResetConfirmationOpen(false)
+      setResetConfirmationText('')
+    
+      window.alert(
+        'Toutes les données de test ont été supprimées.'
+      )
+    
+      window.location.reload()
+    }
 
   async function broadcastMessage() {
     if (!supabaseEnabled || !selectedMessage) return
@@ -220,6 +265,71 @@ export default function CommandCenter({
         </section>
       )}
 
+<section className="command-section command-danger-zone">
+  <p className="command-section__label">
+    ADMINISTRATION
+  </p>
+
+  <h2>Réinitialiser les données de test</h2>
+
+  <p>
+    Cette action supprimera définitivement les participants,
+    les missions accomplies, les anecdotes et les messages privés.
+  </p>
+
+  {!resetConfirmationOpen ? (
+    <button
+      type="button"
+      className="command-reset-button"
+      onClick={() => setResetConfirmationOpen(true)}
+    >
+      🗑 Réinitialiser toutes les données
+    </button>
+  ) : (
+    <div className="command-reset-confirmation">
+      <strong>Confirmer la suppression définitive</strong>
+
+      <p>
+        Écrivez exactement <b>RESET</b> ci-dessous.
+      </p>
+
+      <input
+        type="text"
+        value={resetConfirmationText}
+        onChange={(event) =>
+          setResetConfirmationText(event.target.value)
+        }
+        placeholder="RESET"
+        autoComplete="off"
+      />
+
+      <div className="command-reset-confirmation__buttons">
+        <button
+          type="button"
+          className="button button--soft"
+          onClick={() => {
+            setResetConfirmationOpen(false)
+            setResetConfirmationText('')
+          }}
+          disabled={isSending}
+        >
+          Annuler
+        </button>
+
+        <button
+          type="button"
+          className="button button--red"
+          onClick={resetAllEventData}
+          disabled={isSending}
+        >
+          {isSending
+            ? 'Suppression…'
+            : 'Confirmer le reset'}
+        </button>
+      </div>
+    </div>
+  )}
+</section>
       <p className="command-connection">
         {supabaseEnabled
           ? '● Tour de contrôle connectée'

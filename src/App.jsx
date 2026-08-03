@@ -7,8 +7,7 @@ import FlightBoard from './components/FlightBoard';
 import SplashScreen from './components/SplashScreen';
 import PassportCelebration from './components/PassportCelebration';
 import AnnouncementBanner from './components/AnnouncementBanner'
-import CommandCenter from './components/CommandCenter'
-import TowerScreen from './components/TowerScreen'
+import TravelerNav from './components/TravelerNav'
 import Countdown from './components/Countdown';
 import Toast from './components/Toast';
 import { GROUPS } from './data/groups';
@@ -56,28 +55,7 @@ function getPassportNumber(participant) {
   );
   return `P-${String((numericValue % 9999) + 1).padStart(4, '0')}`;
 }
-function getTowerMessage(settings) {
-  if (!settings?.tower_message_text) return null
 
-  const expiresAt = settings.tower_message_expires_at
-
-  if (
-    expiresAt &&
-    new Date(expiresAt).getTime() <= Date.now()
-  ) {
-    return null
-  }
-
-  return {
-    id: settings.tower_message_id,
-    icon: settings.tower_message_icon || '📢',
-    title:
-      settings.tower_message_title ||
-      'Message de l’équipage',
-    text: settings.tower_message_text,
-    expiresAt,
-  }
-}
 export default function App() {
   const [screen, setScreen] = useState('intro');
   const [showSplash, setShowSplash] = useState(true);
@@ -103,30 +81,44 @@ export default function App() {
   const [connectedParticipants, setConnectedParticipants] = useState([]);
   const [cockpitUpdatedAt, setCockpitUpdatedAt] = useState(null);
   const [grandTravelers, setGrandTravelers] = useState([]);
-  const [towerMessage, setTowerMessage] = useState(null)
-
-  const [towerStats, setTowerStats] = useState({
-    participants: 0,
-    missions: 0,
-    passports: 0,
-    memories: 0,
-  })
   const previousJournalCount = useRef(appState.journalEntries.length);
 
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
 
-  const currentPath =
-  window.location.pathname.replace(/\/+$/, '') || '/'
+const [showUserMenu, setShowUserMenu] = useState(false);
 
-  useEffect(() => {
-    const fadeTimer = window.setTimeout(() => setSplashVisible(false), 1800);
-    const removeTimer = window.setTimeout(() => setShowSplash(false), 2400);
-    return () => {
-      window.clearTimeout(fadeTimer);
-      window.clearTimeout(removeTimer);
-    };
-  }, []);
+function changeTraveler() {
+  updateState({
+    participant: null,
+    completedMissionIds: [],
+    declinedMissionIds: [],
+    encounterCount: 0,
+    cooldownUntil: null,
+    passportFinalized: false,
+    finalizedAt: null,
+  });
+
+  setCurrentMission(null);
+  setEarnedDestination(null);
+  setAnswer('');
+  setPrivateMessage('');
+  setRegistration({
+    groupName: '',
+    selectedLastName: '',
+    firstName: '',
+    customLastName: '',
+    email: '',
+  });
+
+  setShowUserMenu(false);
+  setScreen('register');
+}
+
+function goHome() {
+  setShowUserMenu(false);
+  setScreen('home');
+}
 
   useEffect(() => {
     writeLocal('state', appState);
@@ -161,8 +153,6 @@ export default function App() {
 
       if (!active) return;
 
-      setTowerMessage(getTowerMessage(settings))
-
       setAppState((prev) => ({
         ...prev,
         eventRunning: settings?.missions_running ?? prev.eventRunning,
@@ -188,15 +178,11 @@ export default function App() {
         { event: '*', schema: 'public', table: 'event_settings' },
         (payload) => {
           const row = payload.new;
-
-          if (row) {
-            setTowerMessage(getTowerMessage(row))
-
-            setAppState(prev => ({
+          if (row)
+            setAppState((prev) => ({
               ...prev,
               eventRunning: row.missions_running,
-            }))
-          }
+            }));
         }
       )
       .subscribe();
@@ -232,60 +218,6 @@ export default function App() {
       supabase.removeChannel(journalChannel);
     };
   }, []);
-
-useEffect(() => {
-  if (!supabaseEnabled) return undefined
-
-  let active = true
-
-  async function refreshTowerStats() {
-    const [
-      participantsResult,
-      assignmentsResult,
-      passportsResult,
-      memoriesResult,
-    ] = await Promise.all([
-      supabase
-        .from('participants')
-        .select('*', { count: 'exact', head: true }),
-
-      supabase
-        .from('mission_assignments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed'),
-
-      supabase
-        .from('participants')
-        .select('*', { count: 'exact', head: true })
-        .eq('passport_finalized', true),
-
-      supabase
-        .from('journal_entries')
-        .select('*', { count: 'exact', head: true }),
-    ])
-
-    if (!active) return
-
-    setTowerStats({
-      participants: participantsResult.count || 0,
-      missions: assignmentsResult.count || 0,
-      passports: passportsResult.count || 0,
-      memories: memoriesResult.count || 0,
-    })
-  }
-
-  refreshTowerStats()
-
-  const interval = window.setInterval(
-    refreshTowerStats,
-    5000
-  )
-
-  return () => {
-    active = false
-    window.clearInterval(interval)
-  }
-}, [])
 
   useEffect(() => {
     if (!supabaseEnabled || !participant?.id) return undefined;
@@ -374,8 +306,48 @@ useEffect(() => {
     [connectedGroupCounts]
   );
 
+  function closeSplash() {
+    unlockSound();
+    setSplashVisible(false);
+  
+    window.setTimeout(() => {
+      setShowSplash(false);
+    }, 500);
+  }
+
   function updateState(patch) {
     setAppState((prev) => ({ ...prev, ...patch }));
+  }
+  function goToTravelerHome() {
+    setScreen('home');
+  }
+  
+  function changeTraveler() {
+    setAppState((previousState) => ({
+      ...previousState,
+      participant: null,
+      completedMissionIds: [],
+      declinedMissionIds: [],
+      encounterCount: 0,
+      cooldownUntil: null,
+      passportFinalized: false,
+      finalizedAt: null,
+    }));
+  
+    setCurrentMission(null);
+    setEarnedDestination(null);
+    setAnswer('');
+    setPrivateMessage('');
+  
+    setRegistration({
+      groupName: '',
+      selectedLastName: '',
+      firstName: '',
+      customLastName: '',
+      email: '',
+    });
+  
+    setScreen('register');
   }
 
   function registerParticipant(nextParticipant) {
@@ -768,72 +740,28 @@ useEffect(() => {
     window.location.reload();
   }
 
-  if (currentPath === '/tower') {
-    return (
-      <TowerScreen
-        eventRunning={appState.eventRunning}
-        towerMessage={towerMessage}
-        stats={towerStats}
-      />
-    )
-  }
-  
-  if (currentPath === '/command') {
-    return (
-      <>
-        <Toast
-          message={toast}
-          onClose={() => setToast('')}
-        />
-  
-        {!adminUnlocked ? (
-          <Layout compact>
-            <p className="eyebrow">
-              Accès réservé à l’équipage
-            </p>
-  
-            <h1>Poste de commandement</h1>
-  
-            <section className="admin-login">
-              <label htmlFor="command-pin">
-                Code équipage
-              </label>
-  
-              <input
-                id="command-pin"
-                type="password"
-                inputMode="numeric"
-                value={adminPin}
-                onChange={event =>
-                  setAdminPin(event.target.value)
-                }
-                placeholder="••••"
-              />
-  
-              <button
-                className="button button--dark"
-                onClick={unlockAdmin}
-              >
-                Ouvrir le poste de commandement
-              </button>
-            </section>
-          </Layout>
-        ) : (
-          <CommandCenter
-            eventRunning={appState.eventRunning}
-            towerMessage={towerMessage}
-            onSetEventRunning={setEventRunning}
-          />
-        )}
-      </>
-    )
-  }
-
-  if (showSplash) return <SplashScreen visible={splashVisible} />;
+if (showSplash) {
+  return (
+    <SplashScreen
+      visible={splashVisible}
+      onContinue={closeSplash}
+    />
+  );
+}
 
   return (
     <>
       <Toast message={toast} onClose={() => setToast('')} />
+
+      {participant &&
+  !['intro', 'register', 'briefing', 'admin'].includes(screen) && (
+    <TravelerNav
+      participant={participant}
+      onHome={goToTravelerHome}
+      onPassport={() => setScreen('passport')}
+      onChangeTraveler={changeTraveler}
+    />
+  )}
 
       {screen === 'intro' && (
         <main className="hero">
@@ -1041,7 +969,7 @@ useEffect(() => {
           </div>
 
           <AnnouncementBanner />
-
+          
           <FlightBoard
             completedCount={appState.completedMissionIds.length}
             eventRunning={appState.eventRunning}
@@ -1090,25 +1018,34 @@ useEffect(() => {
         </Layout>
       )}
 
-      {screen === 'passport' && participant && (
-        <Layout>
-          <p className="eyebrow">Document de voyage</p>
-          <h1>Votre passeport</h1>
+{screen === 'passport' && participant && (
+  <Layout>
+    <div className="passport-page-heading">
+      <button
+        type="button"
+        className="passport-back-button"
+        onClick={() => setScreen('home')}
+      >
+        <span>←</span>
+        Retour à l’accueil
+      </button>
 
-          <PassportBook
-            participant={participant}
-            passportNumber={passportNumber}
-            completedCount={appState.completedMissionIds.length}
-            passportFinalized={appState.passportFinalized}
-            isStamping={isStamping}
-            onValidate={validatePassport}
-          />
+      <div>
+        <p className="eyebrow">Document de voyage</p>
+        <h1>Votre passeport</h1>
+      </div>
+    </div>
 
-          <button className="text-button" onClick={() => setScreen('home')}>
-            ← Retour
-          </button>
-        </Layout>
-      )}
+    <PassportBook
+      participant={participant}
+      passportNumber={passportNumber}
+      completedCount={appState.completedMissionIds.length}
+      passportFinalized={appState.passportFinalized}
+      isStamping={isStamping}
+      onValidate={validatePassport}
+    />
+  </Layout>
+)}
 
       {screen === 'stamp' && earnedDestination && (
         <Layout compact>
