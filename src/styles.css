@@ -768,3 +768,341 @@ input:focus, select:focus, textarea:focus { border-color: var(--passport-light);
     font-size: 0.77rem;
   }
 }
+/* ---------- Poste de commandement mobile ---------- */
+
+.command-center {
+  min-height: 100svh;
+  padding:
+    max(1rem, env(safe-area-inset-top))
+    1rem
+    max(1.4rem, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(229, 173, 61, 0.14),
+      transparent 28rem
+    ),
+    linear-gradient(
+      160deg,
+      #062f34,
+      #0a555b
+    );
+  color: white;
+}
+
+.command-center__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.command-center__header small {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #e5ad3d;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.command-center__header h1 {
+  margin: 0;
+  color: white;
+  font-size: clamp(2rem, 10vw, 3.2rem);
+  line-height: 0.95;
+}
+
+.command-center__status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(229, 173, 61, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: #efc56d;
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.command-center__status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.command-center__status--active {
+  color: #7ee0a8;
+  background: rgba(61, 162, 103, 0.12);
+}
+
+.command-center__status--active i {
+  animation: commandStatusPulse 1.5s infinite;
+}
+
+.command-section {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.14),
+    inset 0 1px rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+}
+
+.command-section__label {
+  margin: 0 0 0.8rem;
+  color: rgba(229, 173, 61, 0.92);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.command-main-button {
+  width: 100%;
+  min-height: 64px;
+  border: 0;
+  border-radius: 15px;
+  padding: 1rem;
+  font-weight: 900;
+  font-size: 0.95rem;
+}
+
+.command-main-button--start {
+  background:
+    linear-gradient(
+      135deg,
+      #e5ad3d,
+      #f1cf7a
+    );
+  color: #342606;
+}
+
+.command-main-button--pause {
+  background:
+    linear-gradient(
+      135deg,
+      #b84e43,
+      #d96e5f
+    );
+  color: white;
+}
+
+.command-message-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.command-message-button {
+  min-height: 86px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  padding: 0.85rem 0.65rem;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+  color: rgba(255, 255, 255, 0.84);
+  background: rgba(0, 0, 0, 0.14);
+  text-align: center;
+}
+
+.command-message-button span {
+  font-size: 1.7rem;
+}
+
+.command-message-button strong {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.command-message-button--selected {
+  border-color: rgba(229, 173, 61, 0.72);
+  color: #fff2c4;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(229, 173, 61, 0.2),
+      rgba(229, 173, 61, 0.08)
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(229, 173, 61, 0.18),
+    0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.command-duration-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.command-duration-button {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.14);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.command-duration-button--selected {
+  border-color: #e5ad3d;
+  color: #332506;
+  background: #e5ad3d;
+}
+
+.command-preview {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  border: 1px solid rgba(229, 173, 61, 0.24);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(10, 22, 23, 0.72),
+      rgba(18, 39, 40, 0.72)
+    );
+}
+
+.command-preview > span {
+  font-size: 1.8rem;
+}
+
+.command-preview small,
+.command-preview strong {
+  display: block;
+}
+
+.command-preview small {
+  margin-bottom: 0.2rem;
+  color: #e5ad3d;
+  font-size: 0.54rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.command-preview strong {
+  color: #fff2c4;
+  font-size: 0.84rem;
+}
+
+.command-preview p {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.command-broadcast-button {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 0.85rem;
+  border: 0;
+  border-radius: 14px;
+  padding: 0.9rem;
+  background:
+    linear-gradient(
+      135deg,
+      #e5ad3d,
+      #f1cf7a
+    );
+  color: #342606;
+  font-weight: 900;
+}
+
+.command-broadcast-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  opacity: 0.45;
+}
+
+.command-active-message {
+  margin: 1rem 0;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  border: 1px solid rgba(126, 224, 168, 0.34);
+  border-radius: 16px;
+  background: rgba(57, 142, 91, 0.14);
+}
+
+.command-active-message small,
+.command-active-message strong {
+  display: block;
+}
+
+.command-active-message small {
+  margin-bottom: 0.25rem;
+  color: #7ee0a8;
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.command-active-message strong {
+  color: white;
+  font-size: 0.84rem;
+}
+
+.command-active-message p {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.command-active-message button {
+  min-width: 74px;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 11px;
+  color: white;
+  background: rgba(0, 0, 0, 0.18);
+  font-weight: 800;
+}
+
+.command-connection {
+  margin: 1rem 0 0;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+@keyframes commandStatusPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}
+
+@media (min-width: 700px) {
+  .command-center {
+    width: min(100%, 760px);
+    margin: 0 auto;
+    padding-right: 1.4rem;
+    padding-left: 1.4rem;
+  }
+
+  .command-message-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
