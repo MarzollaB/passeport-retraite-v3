@@ -4,8 +4,8 @@ export const CONFIG = {
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
   demoMode: new URLSearchParams(window.location.search).get('demo') === '1',
-  cooldownMinMinutes: 50,
-  cooldownMaxMinutes: 70,
+  cooldownMinMinutes: 30,
+  cooldownMaxMinutes: 50,
   demoCooldownSeconds: 45,
   maxEncounterMissionsPerParticipant: 2,
   maxAssignmentsPerMission: 3
