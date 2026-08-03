@@ -6,6 +6,7 @@ import StampReveal from './components/StampReveal';
 import FlightBoard from './components/FlightBoard';
 import SplashScreen from './components/SplashScreen';
 import PassportCelebration from './components/PassportCelebration';
+import AnnouncementBanner from './components/AnnouncementBanner'
 import Countdown from './components/Countdown';
 import Toast from './components/Toast';
 import { GROUPS } from './data/groups';
@@ -884,6 +885,8 @@ export default function App() {
             </button>
           </div>
 
+          <AnnouncementBanner />
+          
           <FlightBoard
             completedCount={appState.completedMissionIds.length}
             eventRunning={appState.eventRunning}
