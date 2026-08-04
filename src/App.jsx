@@ -7,6 +7,7 @@ import FlightBoard from './components/FlightBoard';
 import SplashScreen from './components/SplashScreen';
 import PassportCelebration from './components/PassportCelebration';
 import AnnouncementBanner from './components/AnnouncementBanner'
+import TravelerNav from './components/TravelerNav'
 import CommandCenter from './components/CommandCenter'
 import TowerScreen from './components/TowerScreen'
 import Countdown from './components/Countdown';
@@ -90,7 +91,13 @@ export default function App() {
     selectedLastName: '',
     firstName: '',
     customLastName: '',
+    email: '',
   });
+
+  const [travelMode, setTravelMode] = useState('solo');
+
+  const [additionalTravelers, setAdditionalTravelers] = useState([]);
+
   const [currentMission, setCurrentMission] = useState(null);
   const [earnedDestination, setEarnedDestination] = useState(null);
   const [answer, setAnswer] = useState('');
@@ -118,15 +125,6 @@ export default function App() {
 
   const currentPath =
   window.location.pathname.replace(/\/+$/, '') || '/'
-
-  useEffect(() => {
-    const fadeTimer = window.setTimeout(() => setSplashVisible(false), 1800);
-    const removeTimer = window.setTimeout(() => setShowSplash(false), 2400);
-    return () => {
-      window.clearTimeout(fadeTimer);
-      window.clearTimeout(removeTimer);
-    };
-  }, []);
 
   useEffect(() => {
     writeLocal('state', appState);
@@ -374,8 +372,89 @@ useEffect(() => {
     [connectedGroupCounts]
   );
 
+  function closeSplash() {
+    unlockSound()
+    setSplashVisible(false)
+  
+    window.setTimeout(() => {
+      setShowSplash(false)
+    }, 500)
+  }
+  function updateAdditionalTraveler(index, field, value) {
+    setAdditionalTravelers((current) =>
+      current.map((traveler, travelerIndex) =>
+        travelerIndex === index
+          ? {
+              ...traveler,
+              [field]: value,
+            }
+          : traveler
+      )
+    );
+  }
+  
+  function addAdditionalTraveler() {
+    setAdditionalTravelers((current) => {
+      if (current.length >= 4) return current;
+  
+      return [
+        ...current,
+        {
+          firstName: '',
+          lastName: '',
+        },
+      ];
+    });
+  }
+  
+  function removeAdditionalTraveler(index) {
+    setAdditionalTravelers((current) => {
+      const minimumAdditionalTravelers =
+        travelMode === 'group' ? 2 : 1;
+  
+      if (current.length <= minimumAdditionalTravelers) {
+        return current;
+      }
+  
+      return current.filter(
+        (_, travelerIndex) => travelerIndex !== index
+      );
+    });
+  }
+
   function updateState(patch) {
     setAppState((prev) => ({ ...prev, ...patch }));
+  }
+  function goToTravelerHome() {
+    setScreen('home');
+  }
+  
+  function changeTraveler() {
+    setAppState((previousState) => ({
+      ...previousState,
+      participant: null,
+      completedMissionIds: [],
+      declinedMissionIds: [],
+      encounterCount: 0,
+      cooldownUntil: null,
+      passportFinalized: false,
+      finalizedAt: null,
+    }));
+  
+    setCurrentMission(null);
+    setEarnedDestination(null);
+    setAnswer('');
+    setPrivateMessage('');
+  
+    setRegistration({
+      groupName: '',
+      selectedLastName: '',
+      firstName: '',
+      customLastName: '',
+      email: '',
+    });
+  
+    setScreen('register');
   }
 
   function registerParticipant(nextParticipant) {
@@ -402,12 +481,42 @@ useEffect(() => {
 
   async function createParticipant() {
     const firstName = registration.firstName.trim();
+    const email = registration.email.trim().toLowerCase();
 
-    const lastName = (
-      registration.selectedLastName === '__other__'
-        ? registration.customLastName
-        : registration.selectedLastName || registration.customLastName
-    ).trim();
+    const mainTraveler = {
+      firstName,
+      lastName: (
+        registration.selectedLastName === '__other__'
+          ? registration.customLastName
+          : registration.selectedLastName ||
+            registration.customLastName
+      ).trim(),
+    };
+    
+    const otherTravelers = additionalTravelers.map(
+      (traveler) => ({
+        firstName: traveler.firstName.trim(),
+        lastName: traveler.lastName.trim(),
+      })
+    );
+    
+    const members =
+      travelMode === 'solo'
+        ? [mainTraveler]
+        : [mainTraveler, ...otherTravelers];
+    
+    const displayName =
+      travelMode === 'solo'
+        ? `${mainTraveler.firstName} ${mainTraveler.lastName}`
+        : travelMode === 'couple'
+          ? members
+              .map((traveler) => traveler.firstName)
+              .join(' & ')
+          : members
+              .map((traveler) => traveler.firstName)
+              .join(', ');
+
+              const lastName = mainTraveler.lastName;
 
     const groupName = registration.groupName;
 
@@ -417,6 +526,20 @@ useEffect(() => {
       );
       return;
     }
+
+    const hasIncompleteAdditionalTraveler =
+  travelMode !== 'solo' &&
+  otherTravelers.some(
+    (traveler) =>
+      !traveler.firstName || !traveler.lastName
+  );
+
+if (hasIncompleteAdditionalTraveler) {
+  setToast(
+    'Complétez le prénom et le nom de chaque voyageur.'
+  );
+  return;
+}
 
     if (!supabaseEnabled) {
       const nextParticipant = {
@@ -433,8 +556,8 @@ useEffect(() => {
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
       .select(
-        'id, first_name, last_name, group_name, passport_finalized, finalized_at'
-      )
+        'id, first_name, last_name, group_name, email, passport_finalized, finalized_at'
+        )
       .eq('group_name', groupName)
       .ilike('first_name', firstName)
       .ilike('last_name', lastName)
@@ -473,6 +596,7 @@ useEffect(() => {
           first_name: nextParticipant.firstName,
           last_name: nextParticipant.lastName,
           group_name: nextParticipant.groupName,
+          email: email || null,
           last_seen_at: new Date().toISOString(),
         });
 
@@ -513,6 +637,7 @@ useEffect(() => {
         .from('participants')
         .update({
           last_seen_at: new Date().toISOString(),
+          ...(email ? { email } : {}),
         })
         .eq('id', nextParticipant.id);
 
@@ -829,11 +954,28 @@ useEffect(() => {
     )
   }
 
-  if (showSplash) return <SplashScreen visible={splashVisible} />;
+  if (showSplash) {
+    return (
+      <SplashScreen
+        visible={splashVisible}
+        onContinue={closeSplash}
+      />
+    )
+  };
 
   return (
     <>
       <Toast message={toast} onClose={() => setToast('')} />
+
+      {participant &&
+  !['intro', 'register', 'briefing', 'admin'].includes(screen) && (
+    <TravelerNav
+      participant={participant}
+      onHome={goToTravelerHome}
+      onPassport={() => setScreen('passport')}
+      onChangeTraveler={changeTraveler}
+    />
+  )}
 
       {screen === 'intro' && (
         <main className="hero">
@@ -880,6 +1022,83 @@ useEffect(() => {
             Choisissez d’abord votre groupe, puis votre nom de famille. Indiquez
             ensuite votre prénom.
           </p>
+          <section className="travel-mode-selector">
+  <p className="travel-mode-selector__label">
+    Comment participez-vous aujourd’hui ?
+  </p>
+
+  <div className="travel-mode-selector__grid">
+    <button
+      type="button"
+      className={
+        travelMode === 'solo'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('solo');
+        setAdditionalTravelers([]);
+      }}
+    >
+      <span>👤</span>
+      <strong>Seul(e)</strong>
+      <small>Un voyageur</small>
+    </button>
+
+    <button
+      type="button"
+      className={
+        travelMode === 'couple'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('couple');
+        setAdditionalTravelers([
+          {
+            firstName: '',
+            lastName: '',
+          },
+        ]);
+      }}
+    >
+      <span>👥</span>
+      <strong>À deux</strong>
+      <small>Un passeport commun</small>
+    </button>
+
+    <button
+      type="button"
+      className={
+        travelMode === 'group'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('group');
+
+        setAdditionalTravelers(current =>
+          current.length >= 2
+            ? current
+            : [
+                {
+                  firstName: '',
+                  lastName: '',
+                },
+                {
+                  firstName: '',
+                  lastName: '',
+                },
+              ]
+        );
+      }}
+    >
+      <span>👨‍👩‍👧‍👦</span>
+      <strong>En groupe</strong>
+      <small>De 3 à 5 voyageurs</small>
+    </button>
+  </div>
+</section>
 
           <label htmlFor="registration-group">Votre groupe</label>
           <select
@@ -891,6 +1110,7 @@ useEffect(() => {
                 selectedLastName: '',
                 firstName: '',
                 customLastName: '',
+                email: '',
               })
             }
           >
@@ -968,6 +1188,135 @@ useEffect(() => {
                   placeholder="Prénom"
                   autoComplete="given-name"
                 />
+                <label htmlFor="registration-email">
+  Adresse e-mail (facultatif)
+</label>
+
+<input
+  id="registration-email"
+  type="email"
+  inputMode="email"
+  value={registration.email}
+  onChange={(event) =>
+    setRegistration({
+      ...registration,
+      email: event.target.value,
+    })
+  }
+  placeholder="nom@exemple.be"
+  autoComplete="email"
+/>
+
+<small className="form-help">
+  Elle servira uniquement à vous envoyer le lien vers les photos de la soirée.
+</small>
+
+{travelMode !== 'solo' && (
+  <section className="additional-travelers">
+    <div className="additional-travelers__heading">
+      <div>
+        <p className="eyebrow">
+          {travelMode === 'couple'
+            ? 'Deuxième voyageur'
+            : 'Autres voyageurs'}
+        </p>
+
+        <h2>
+          {travelMode === 'couple'
+            ? 'Qui voyage avec vous ?'
+            : 'Qui compose votre groupe ?'}
+        </h2>
+      </div>
+
+      <span>
+        {additionalTravelers.length + 1}/
+        {travelMode === 'couple' ? 2 : 5}
+      </span>
+    </div>
+
+    {additionalTravelers.map((traveler, index) => (
+      <article
+        className="additional-traveler-card"
+        key={index}
+      >
+        <div className="additional-traveler-card__title">
+          <strong>Voyageur {index + 2}</strong>
+
+          {travelMode === 'group' &&
+            additionalTravelers.length > 2 && (
+              <button
+                type="button"
+                onClick={() =>
+                  removeAdditionalTraveler(index)
+                }
+                aria-label={`Supprimer le voyageur ${
+                  index + 2
+                }`}
+              >
+                ×
+              </button>
+            )}
+        </div>
+
+        <label
+          htmlFor={`additional-first-name-${index}`}
+        >
+          Prénom
+        </label>
+
+        <input
+          id={`additional-first-name-${index}`}
+          value={traveler.firstName}
+          onChange={(event) =>
+            updateAdditionalTraveler(
+              index,
+              'firstName',
+              event.target.value
+            )
+          }
+          placeholder="Prénom"
+          autoComplete="off"
+        />
+
+        <label
+          htmlFor={`additional-last-name-${index}`}
+        >
+          Nom
+        </label>
+
+        <input
+          id={`additional-last-name-${index}`}
+          value={traveler.lastName}
+          onChange={(event) =>
+            updateAdditionalTraveler(
+              index,
+              'lastName',
+              event.target.value
+            )
+          }
+          placeholder="Nom"
+          autoComplete="off"
+        />
+      </article>
+    ))}
+
+    {travelMode === 'group' &&
+      additionalTravelers.length < 4 && (
+        <button
+          type="button"
+          className="additional-travelers__add"
+          onClick={addAdditionalTraveler}
+        >
+          ＋ Ajouter un voyageur
+        </button>
+      )}
+
+    <small className="form-help">
+      Tous les voyageurs inscrits ici partageront le même
+      passeport et la même progression.
+    </small>
+  </section>
+)}
                 <button
                   className="button button--dark"
                   onClick={createParticipant}

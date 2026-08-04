@@ -21,10 +21,61 @@ export default function CommandCenter({
 
   const [isSending, setIsSending] = useState(false)
 
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetPin, setResetPin] = useState('')
+  const [resetConfirmed, setResetConfirmed] = useState(false)
+
   const selectedMessage =
     PRESET_TOWER_MESSAGES.find(
       message => message.id === selectedMessageId
     ) || null
+
+    async function resetEventData() {
+      if (!supabaseEnabled || isSending) return
+    
+      if (!resetConfirmed) {
+        window.alert(
+          'Cochez la confirmation avant de réinitialiser les données.'
+        )
+        return
+      }
+    
+      if (resetPin.trim() !== '1608') {
+        window.alert('Code équipage incorrect.')
+        return
+      }
+    
+      setIsSending(true)
+    
+      const { error } = await supabase.rpc(
+        'reset_patricia_event_data',
+        {
+          p_pin: resetPin.trim(),
+        }
+      )
+    
+      setIsSending(false)
+    
+      if (error) {
+        console.error(error)
+      
+        window.alert(
+          `Erreur : ${error.message}`
+        )
+      
+        return
+      }
+    
+      setResetOpen(false)
+      setResetPin('')
+      setResetConfirmed(false)
+    
+      window.alert(
+        'Les données créées pendant les tests ont été supprimées.'
+      )
+    
+      window.location.reload()
+    }
 
   async function broadcastMessage() {
     if (!supabaseEnabled || !selectedMessage) return
@@ -219,6 +270,93 @@ export default function CommandCenter({
           </button>
         </section>
       )}
+
+<section className="command-section command-danger-zone">
+  <p className="command-section__label">
+    ADMINISTRATION
+  </p>
+
+  <h2>Réinitialiser les données de test</h2>
+
+  <p className="command-danger-zone__text">
+    Cette action supprimera les participants enregistrés,
+    leur progression, les anecdotes et les messages privés.
+    La configuration de l’application restera intacte.
+  </p>
+
+  {!resetOpen ? (
+    <button
+      type="button"
+      className="command-reset-button"
+      onClick={() => setResetOpen(true)}
+    >
+      🗑 Préparer la réinitialisation
+    </button>
+  ) : (
+    <div className="command-reset-confirmation">
+      <label className="command-reset-check">
+        <input
+          type="checkbox"
+          checked={resetConfirmed}
+          onChange={(event) =>
+            setResetConfirmed(event.target.checked)
+          }
+        />
+
+        <span>
+          Je confirme vouloir supprimer toutes les données
+          créées pendant les tests.
+        </span>
+      </label>
+
+      <label htmlFor="reset-pin">
+        Code équipage
+      </label>
+
+      <input
+        id="reset-pin"
+        type="password"
+        inputMode="numeric"
+        value={resetPin}
+        onChange={(event) =>
+          setResetPin(event.target.value)
+        }
+        placeholder="••••"
+        autoComplete="off"
+      />
+
+      <div className="command-reset-actions">
+        <button
+          type="button"
+          className="button button--soft"
+          onClick={() => {
+            setResetOpen(false)
+            setResetPin('')
+            setResetConfirmed(false)
+          }}
+          disabled={isSending}
+        >
+          Annuler
+        </button>
+
+        <button
+          type="button"
+          className="button button--red"
+          onClick={resetEventData}
+          disabled={
+            isSending ||
+            !resetConfirmed ||
+            resetPin.trim() !== '1608'
+          }
+        >
+          {isSending
+            ? 'Réinitialisation…'
+            : 'Confirmer la réinitialisation'}
+        </button>
+      </div>
+    </div>
+  )}
+</section>
 
       <p className="command-connection">
         {supabaseEnabled
