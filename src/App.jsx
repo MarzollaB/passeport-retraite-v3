@@ -112,6 +112,16 @@ export default function App() {
   const [grandTravelers, setGrandTravelers] = useState([]);
   const [towerMessage, setTowerMessage] = useState(null)
 
+  const [profileForm, setProfileForm] = useState({
+    displayName: '',
+    email: '',
+    meetingPlace: '',
+    meetingYear: '',
+  })
+
+  const [avatarPreview, setAvatarPreview] = useState('')
+  const [avatarFile, setAvatarFile] = useState(null)
+
   const [towerStats, setTowerStats] = useState({
     participants: 0,
     missions: 0,
@@ -119,6 +129,8 @@ export default function App() {
     memories: 0,
   })
   const previousJournalCount = useRef(appState.journalEntries.length);
+
+  const avatarInputRef = useRef(null);
 
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
@@ -129,6 +141,19 @@ export default function App() {
   useEffect(() => {
     writeLocal('state', appState);
   }, [appState]);
+
+  useEffect(() => {
+    if (!participant) return
+  
+    setProfileForm({
+      displayName:
+        participant.displayName ||
+        `${participant.firstName} ${participant.lastName}`,
+      email: participant.email || '',
+      meetingPlace: participant.meetingPlace || '',
+      meetingYear: participant.meetingYear || '',
+    })
+  }, [participant])
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -453,7 +478,9 @@ useEffect(() => {
       customLastName: '',
       email: '',
     });
-  
+    
+    setTravelMode('solo');
+    setAdditionalTravelers([]);
     setScreen('register');
   }
 
@@ -555,9 +582,7 @@ if (hasIncompleteAdditionalTraveler) {
 
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
-      .select(
-        'id, first_name, last_name, group_name, email, passport_finalized, finalized_at'
-        )
+      .select('id, first_name, last_name, group_name, email, travel_mode, display_name, members, avatar_url, meeting_place, meeting_year, passport_finalized, finalized_at')
       .eq('group_name', groupName)
       .ilike('first_name', firstName)
       .ilike('last_name', lastName)
@@ -580,13 +605,38 @@ if (hasIncompleteAdditionalTraveler) {
         firstName: existingParticipant.first_name,
         lastName: existingParticipant.last_name,
         groupName: existingParticipant.group_name,
+        email: existingParticipant.email || '',
+        travelMode: existingParticipant.travel_mode || 'solo',
+        displayName:
+          existingParticipant.display_name ||
+          `${existingParticipant.first_name} ${existingParticipant.last_name}`,
+        members:
+          existingParticipant.members?.length
+            ? existingParticipant.members
+            : [
+                {
+                  firstName: existingParticipant.first_name,
+                  lastName: existingParticipant.last_name,
+                },
+              ],
+        avatarUrl: existingParticipant.avatar_url || '',
+        meetingPlace: existingParticipant.meeting_place || '',
+        meetingYear: existingParticipant.meeting_year || '',
       };
-    } else {
+    }
+    else {
       nextParticipant = {
         id: crypto.randomUUID(),
         firstName,
         lastName,
         groupName,
+        email,
+        travelMode,
+        displayName,
+        members,
+        avatarUrl: '',
+        meetingPlace: '',
+        meetingYear: '',
       };
 
       const { error: insertError } = await supabase
@@ -597,6 +647,12 @@ if (hasIncompleteAdditionalTraveler) {
           last_name: nextParticipant.lastName,
           group_name: nextParticipant.groupName,
           email: email || null,
+          travel_mode: travelMode,
+          display_name: displayName,
+          members,
+          avatar_url: null,
+          meeting_place: null,
+          meeting_year: null,
           last_seen_at: new Date().toISOString(),
         });
 
@@ -638,6 +694,9 @@ if (hasIncompleteAdditionalTraveler) {
         .update({
           last_seen_at: new Date().toISOString(),
           ...(email ? { email } : {}),
+          travel_mode: travelMode,
+          display_name: displayName,
+          members,
         })
         .eq('id', nextParticipant.id);
 
@@ -788,6 +847,73 @@ if (hasIncompleteAdditionalTraveler) {
         'La réponse n’a pas pu être enregistrée. Vérifiez la connexion et recommencez.'
       );
     }
+  }
+
+  function handleAvatarChange(event) {
+    const file = event.target.files?.[0];
+  
+    if (!file) return;
+  
+    if (!file.type.startsWith('image/')) {
+      setToast('Veuillez choisir une image.');
+      return;
+    }
+  
+    const previewUrl = URL.createObjectURL(file);
+
+      setAvatarFile(file);
+      setAvatarPreview(previewUrl);
+    }    
+
+  async function saveProfile() {
+    if (!participant?.id) return;
+  
+    const cleanedDisplayName = profileForm.displayName.trim();
+    const cleanedEmail = profileForm.email.trim().toLowerCase();
+    const cleanedMeetingPlace = profileForm.meetingPlace.trim();
+    const cleanedMeetingYear = profileForm.meetingYear.trim();
+  
+    if (!cleanedDisplayName) {
+      setToast('Indiquez le nom à afficher sur votre passeport.');
+      return;
+    }
+  
+    const updatedParticipant = {
+      ...participant,
+      displayName: cleanedDisplayName,
+      email: cleanedEmail,
+      meetingPlace: cleanedMeetingPlace,
+      meetingYear: cleanedMeetingYear,
+    };
+  
+    if (supabaseEnabled) {
+      const { error } = await supabase
+        .from('participants')
+        .update({
+          display_name: cleanedDisplayName,
+          email: cleanedEmail || null,
+          meeting_place: cleanedMeetingPlace || null,
+          meeting_year: cleanedMeetingYear || null,
+          last_seen_at: new Date().toISOString(),
+        })
+        .eq('id', participant.id);
+  
+      if (error) {
+        console.error(error);
+        setToast(
+          'Le profil n’a pas pu être enregistré. Vérifiez la connexion.'
+        );
+        return;
+      }
+    }
+  
+    setAppState((previousState) => ({
+      ...previousState,
+      participant: updatedParticipant,
+    }));
+  
+    setToast('Votre profil a bien été enregistré.');
+    setScreen('home');
   }
 
   async function savePrivateMessage() {
@@ -973,6 +1099,7 @@ if (hasIncompleteAdditionalTraveler) {
       participant={participant}
       onHome={goToTravelerHome}
       onPassport={() => setScreen('passport')}
+      onProfile={() => setScreen('profile')}
       onChangeTraveler={changeTraveler}
     />
   )}
@@ -1438,6 +1565,124 @@ if (hasIncompleteAdditionalTraveler) {
           </p>
         </Layout>
       )}
+
+{screen === 'profile' && participant && (
+  <Layout>
+    <p className="eyebrow">Profil voyageur</p>
+
+    <h1>Mon profil</h1>
+
+    <p className="subtitle">
+      Personnalisez votre passeport.
+      Vous pourrez modifier ces informations
+      quand vous le souhaitez.
+    </p>
+
+    <section className="profile-card">
+
+    <div className="profile-avatar">
+  <button
+    className="profile-avatar__button"
+    type="button"
+    onClick={() => avatarInputRef.current?.click()}
+  >
+    {avatarPreview || participant.avatarUrl ? (
+      <img
+        src={avatarPreview || participant.avatarUrl}
+        alt="Photo du passeport"
+      />
+    ) : (
+      <>
+        <span>📷</span>
+        <small>Ajouter une photo</small>
+      </>
+    )}
+  </button>
+
+  <input
+    ref={avatarInputRef}
+    type="file"
+    accept="image/*"
+    capture="user"
+    onChange={handleAvatarChange}
+    hidden
+  />
+</div>
+
+      <label>Nom affiché</label>
+
+      <input
+        value={profileForm.displayName}
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            displayName:event.target.value,
+          })
+        }
+      />
+
+      <label>Adresse e-mail</label>
+
+      <input
+        type="email"
+        value={profileForm.email}
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            email:event.target.value,
+          })
+        }
+      />
+
+      <label>
+        Où avez-vous rencontré Patricia ?
+      </label>
+
+      <input
+        value={profileForm.meetingPlace}
+        placeholder="Ex : École, Hôpital..."
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            meetingPlace:event.target.value,
+          })
+        }
+      />
+
+      <label>
+        Depuis quelle année ?
+      </label>
+
+      <input
+        value={profileForm.meetingYear}
+        placeholder="Ex : 1998"
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            meetingYear:event.target.value,
+          })
+        }
+      />
+
+    </section>
+
+    <button
+      type="button"
+      className="button button--gold"
+      onClick={saveProfile}
+    >
+      Enregistrer mon profil
+    </button>
+
+    <button
+      className="text-button"
+      onClick={() => setScreen('home')}
+    >
+      ← Retour
+    </button>
+
+  </Layout>
+)}
 
       {screen === 'passport' && participant && (
         <Layout>

@@ -4,6 +4,7 @@ export default function TravelerNav({
   participant,
   onHome,
   onPassport,
+  onProfile,
   onChangeTraveler,
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -74,6 +75,17 @@ export default function TravelerNav({
               >
                 <span>🛂</span>
                 Voir mon passeport
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  onProfile()
+                }}
+              >
+                <span>👤</span>
+                Mon profil
               </button>
 
               <button
