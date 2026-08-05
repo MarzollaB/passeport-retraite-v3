@@ -2058,3 +2058,14 @@ body:has(.traveler-nav-shell) .toast {
   object-fit: cover;
   border-radius: inherit;
 }
+.passport-photo-placeholder {
+  overflow: hidden;
+}
+
+.passport-photo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}

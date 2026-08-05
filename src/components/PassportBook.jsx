@@ -20,9 +20,19 @@ export default function PassportBook({
         <h2>Passeport de voyage</h2>
 
         <div className="passport-photo-placeholder">
-          <span>✈</span>
-          <small>VOYAGEUR</small>
-        </div>
+  {participant.avatarUrl || participant.avatar_url ? (
+    <img
+      src={participant.avatarUrl || participant.avatar_url}
+      alt={`Photo de ${participant.firstName}`}
+      className="passport-photo"
+    />
+  ) : (
+    <>
+      <span>✈</span>
+      <small>VOYAGEUR</small>
+    </>
+  )}
+</div>
 
         <dl className="passport-identity">
           <div><dt>Nom</dt><dd>{participant.lastName}</dd></div>

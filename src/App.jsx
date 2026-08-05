@@ -856,15 +856,26 @@ if (hasIncompleteAdditionalTraveler) {
   
     if (!file.type.startsWith('image/')) {
       setToast('Veuillez choisir une image.');
+      event.target.value = '';
       return;
     }
   
+    if (file.size > 5 * 1024 * 1024) {
+      setToast('La photo est trop lourde. Taille maximale : 5 Mo.');
+      event.target.value = '';
+      return;
+    }
+  
+    if (avatarPreview?.startsWith('blob:')) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+  
     const previewUrl = URL.createObjectURL(file);
-
-      setAvatarFile(file);
-      setAvatarPreview(previewUrl);
-    }    
-
+  
+    setAvatarFile(file);
+    setAvatarPreview(previewUrl);
+  }
+  
   async function saveProfile() {
     if (!participant?.id) return;
   
@@ -878,42 +889,92 @@ if (hasIncompleteAdditionalTraveler) {
       return;
     }
   
-    const updatedParticipant = {
-      ...participant,
-      displayName: cleanedDisplayName,
-      email: cleanedEmail,
-      meetingPlace: cleanedMeetingPlace,
-      meetingYear: cleanedMeetingYear,
-    };
+    try {
+      let avatarUrl =
+        participant.avatarUrl ||
+        participant.avatar_url ||
+        null;
   
-    if (supabaseEnabled) {
-      const { error } = await supabase
-        .from('participants')
-        .update({
-          display_name: cleanedDisplayName,
-          email: cleanedEmail || null,
-          meeting_place: cleanedMeetingPlace || null,
-          meeting_year: cleanedMeetingYear || null,
-          last_seen_at: new Date().toISOString(),
-        })
-        .eq('id', participant.id);
+      /*
+       * Si une nouvelle image a été choisie :
+       * 1. elle est envoyée dans le bucket Supabase "avatars" ;
+       * 2. son adresse publique est enregistrée dans le participant.
+       */
+      if (avatarFile && supabaseEnabled) {
+        const extension =
+          avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
   
-      if (error) {
-        console.error(error);
-        setToast(
-          'Le profil n’a pas pu être enregistré. Vérifiez la connexion.'
-        );
-        return;
+        const safeExtension = extension.replace(/[^a-z0-9]/g, '') || 'jpg';
+  
+        const avatarPath = `${participant.id}/avatar-${Date.now()}.${safeExtension}`;
+  
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(avatarPath, avatarFile, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: avatarFile.type,
+          });
+  
+        if (uploadError) {
+          throw uploadError;
+        }
+  
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(avatarPath);
+  
+        avatarUrl = publicUrlData.publicUrl;
       }
+  
+      if (supabaseEnabled) {
+        const { error: updateError } = await supabase
+          .from('participants')
+          .update({
+            display_name: cleanedDisplayName,
+            email: cleanedEmail || null,
+            meeting_place: cleanedMeetingPlace || null,
+            meeting_year: cleanedMeetingYear || null,
+            avatar_url: avatarUrl,
+            last_seen_at: new Date().toISOString(),
+          })
+          .eq('id', participant.id);
+  
+        if (updateError) {
+          throw updateError;
+        }
+      }
+  
+      const updatedParticipant = {
+        ...participant,
+        displayName: cleanedDisplayName,
+        email: cleanedEmail,
+        meetingPlace: cleanedMeetingPlace,
+        meetingYear: cleanedMeetingYear,
+        avatarUrl,
+      };
+  
+      setAppState((previousState) => ({
+        ...previousState,
+        participant: updatedParticipant,
+      }));
+  
+      if (avatarPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+  
+      setAvatarFile(null);
+      setAvatarPreview(avatarUrl || '');
+      setToast('Votre profil et votre photo ont bien été enregistrés.');
+      setScreen('home');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du profil :', error);
+  
+      setToast(
+        error?.message ||
+          'Le profil n’a pas pu être enregistré. Vérifiez la connexion.'
+      );
     }
-  
-    setAppState((previousState) => ({
-      ...previousState,
-      participant: updatedParticipant,
-    }));
-  
-    setToast('Votre profil a bien été enregistré.');
-    setScreen('home');
   }
 
   async function savePrivateMessage() {
