@@ -849,33 +849,93 @@ if (hasIncompleteAdditionalTraveler) {
     }
   }
 
-  function handleAvatarChange(event) {
-    const file = event.target.files?.[0];
+  async function handleAvatarChange(event) {
+    const selectedFile = event.target.files?.[0]
   
-    if (!file) return;
+    if (!selectedFile) return
   
-    if (!file.type.startsWith('image/')) {
-      setToast('Veuillez choisir une image.');
-      event.target.value = '';
-      return;
+    const fileName = selectedFile.name.toLowerCase()
+  
+    const isHeic =
+      selectedFile.type === 'image/heic' ||
+      selectedFile.type === 'image/heif' ||
+      fileName.endsWith('.heic') ||
+      fileName.endsWith('.heif')
+  
+    const isRegularImage = selectedFile.type.startsWith('image/')
+  
+    if (!isRegularImage && !isHeic) {
+      setToast('Veuillez choisir une image.')
+      event.target.value = ''
+      return
     }
   
-    if (file.size > 5 * 1024 * 1024) {
-      setToast('La photo est trop lourde. Taille maximale : 5 Mo.');
-      event.target.value = '';
-      return;
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setToast('La photo est trop lourde. Taille maximale : 10 Mo.')
+      event.target.value = ''
+      return
     }
   
-    if (avatarPreview?.startsWith('blob:')) {
-      URL.revokeObjectURL(avatarPreview);
+    try {
+      let finalFile = selectedFile
+  
+      if (isHeic) {
+        setToast('Conversion de la photo iPhone en cours…')
+  
+        const heic2anyModule = await import('heic2any');
+        const convertHeic = heic2anyModule.default || heic2anyModule;
+
+        const convertedResult = await convertHeic({
+          blob: selectedFile,
+          toType: 'image/jpeg',
+          quality: 0.85,
+        });
+  
+        const convertedBlob = Array.isArray(convertedResult)
+          ? convertedResult[0]
+          : convertedResult
+  
+        const jpegName = selectedFile.name.replace(
+          /\.(heic|heif)$/i,
+          '.jpg'
+        )
+  
+        finalFile = new File([convertedBlob], jpegName, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        })
+      }
+  
+      if (avatarPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview)
+      }
+  
+      const previewUrl = URL.createObjectURL(finalFile)
+  
+      setAvatarFile(finalFile)
+      setAvatarPreview(previewUrl)
+  
+      if (isHeic) {
+        setToast('Photo iPhone convertie. Vous pouvez enregistrer le profil.')
+      }
+    } catch (error) {
+      console.error('Erreur de conversion HEIC :', error)
+  
+      console.error(
+        'Détail de l’erreur HEIC :',
+        error?.code,
+        error?.message,
+        error
+      )
+      
+      setToast(
+        'Cette photo HEIC ne peut pas être convertie. Sur iPhone, choisissez une capture d’écran de la photo ou réglez Appareil photo > Formats > Le plus compatible.'
+      )
+      
+      event.target.value = ''
     }
-  
-    const previewUrl = URL.createObjectURL(file);
-  
-    setAvatarFile(file);
-    setAvatarPreview(previewUrl);
   }
-  
+
   async function saveProfile() {
     if (!participant?.id) return;
   
@@ -1663,7 +1723,7 @@ if (hasIncompleteAdditionalTraveler) {
   <input
     ref={avatarInputRef}
     type="file"
-    accept="image/*"
+    accept="image/jpeg,image/png"    
     capture="user"
     onChange={handleAvatarChange}
     hidden
