@@ -10,6 +10,7 @@ import AnnouncementBanner from './components/AnnouncementBanner'
 import TravelerNav from './components/TravelerNav'
 import CommandCenter from './components/CommandCenter'
 import TowerScreen from './components/TowerScreen'
+import MimouPage from './components/MimouPage'
 import Countdown from './components/Countdown';
 import Toast from './components/Toast';
 import { GROUPS } from './data/groups';
@@ -1140,6 +1141,10 @@ if (hasIncompleteAdditionalTraveler) {
     window.location.reload();
   }
 
+  if (currentPath === '/mimou') {
+    return <MimouPage />
+  }
+
   if (currentPath === '/tower') {
     return (
       <TowerScreen
@@ -1675,6 +1680,20 @@ if (hasIncompleteAdditionalTraveler) {
             <div>
               <strong>Un petit mot privé pour Mimou</strong>
               <small>Visible uniquement par Benoît après la soirée</small>
+            </div>
+            <i>›</i>
+          </button>
+
+          <button
+            className="navigation-card"
+            onClick={() => window.open(CONFIG.albumUrl, '_blank')}
+          >
+            <span>📸</span>
+            <div>
+              <strong>Ajouter vos photos</strong>
+              <small>
+                Partagez vos photos de la soirée dans l’album de Patricia
+              </small>
             </div>
             <i>›</i>
           </button>
