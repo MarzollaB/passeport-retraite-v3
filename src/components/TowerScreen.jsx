@@ -19,40 +19,59 @@ function shuffle(array) {
 }
 
 function playAirportChime() {
+  const audio = new Audio('/audio/airport-chime.mp3')
+
+  audio.volume = 1
+
+  audio.play().catch(error => {
+    console.warn(
+      'Le carillon de la tour n’a pas pu être joué :',
+      error
+    )
+  })
+}
+
+async function playAirportAnnouncement(src) {
   const AudioContext =
     window.AudioContext || window.webkitAudioContext
 
-  if (!AudioContext) return
-
-  const context = new AudioContext()
-  const now = context.currentTime
-
-  function playTone(frequency, start, duration) {
-    const oscillator = context.createOscillator()
-    const gain = context.createGain()
-
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(frequency, now + start)
-
-    gain.gain.setValueAtTime(0.0001, now + start)
-    gain.gain.exponentialRampToValueAtTime(
-      0.22,
-      now + start + 0.02
-    )
-    gain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + start + duration
-    )
-
-    oscillator.connect(gain)
-    gain.connect(context.destination)
-
-    oscillator.start(now + start)
-    oscillator.stop(now + start + duration)
+  if (!AudioContext) {
+    const audio = new Audio(src)
+    audio.play()
+    return
   }
 
-  playTone(659, 0, 0.55)
-  playTone(523, 0.62, 0.65)
+  const context = new AudioContext()
+
+  const response = await fetch(src)
+  const arrayBuffer = await response.arrayBuffer()
+  const audioBuffer = await context.decodeAudioData(arrayBuffer)
+
+  const source = context.createBufferSource()
+  source.buffer = audioBuffer
+
+  const highPass = context.createBiquadFilter()
+  highPass.type = 'highpass'
+  highPass.frequency.value = 260
+
+  const lowPass = context.createBiquadFilter()
+  lowPass.type = 'lowpass'
+  lowPass.frequency.value = 3600
+
+  const compressor = context.createDynamicsCompressor()
+  compressor.threshold.value = -28
+  compressor.knee.value = 12
+  compressor.ratio.value = 6
+  compressor.attack.value = 0.005
+  compressor.release.value = 0.18
+
+  source
+    .connect(highPass)
+    .connect(lowPass)
+    .connect(compressor)
+    .connect(context.destination)
+
+  source.start()
 }
 
 export default function TowerScreen({
@@ -96,7 +115,6 @@ export default function TowerScreen({
 
   useEffect(() => {
     if (!soundEnabled) return
-  
     if (!towerMessage?.id || !towerMessage?.text) return
   
     if (lastSpokenMessageId.current === towerMessage.id) {
@@ -105,45 +123,21 @@ export default function TowerScreen({
   
     lastSpokenMessageId.current = towerMessage.id
   
-    if (!('speechSynthesis' in window)) return
-  
-    window.speechSynthesis.cancel()
-  
     playAirportChime()
   
-    const timer = window.setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(
-        towerMessage.text
-      )
+    const baseMessageId = towerMessage.id
+      .replace(/-\d+$/, '')
   
-      utterance.lang = 'fr-FR'
-      utterance.rate = 0.92
-      utterance.pitch = 1
-      utterance.volume = 1
-  
-      const voices = window.speechSynthesis.getVoices()
-  
-      const frenchVoice =
-        voices.find(
-          voice =>
-            voice.lang.toLowerCase().startsWith('fr') &&
-            voice.name.toLowerCase().includes('female')
-        ) ||
-        voices.find(
-          voice =>
-            voice.lang.toLowerCase().startsWith('fr-fr')
-        ) ||
-        voices.find(
-          voice =>
-            voice.lang.toLowerCase().startsWith('fr')
-        )
-  
-      if (frenchVoice) {
-        utterance.voice = frenchVoice
-      }
-  
-      window.speechSynthesis.speak(utterance)
-    }, 1500)
+      const timer = window.setTimeout(() => {
+        playAirportAnnouncement(
+          `/audio/${baseMessageId}.mp3`
+        ).catch(error => {
+          console.warn(
+            `Annonce audio introuvable : ${baseMessageId}.mp3`,
+            error
+          )
+        })
+      }, 1500)
   
     return () => {
       window.clearTimeout(timer)
@@ -157,29 +151,15 @@ export default function TowerScreen({
     <main className="tower-screen">
       {!soundEnabled && (
   <button
-    type="button"
-    className="tower-sound-button"
-    onClick={() => {
-      setSoundEnabled(true)
-
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel()
-
-        const testMessage = new SpeechSynthesisUtterance(
-          'Son de la tour activé.'
-        )
-
-        testMessage.lang = 'fr-FR'
-        testMessage.volume = 0.01
-
-        window.speechSynthesis.speak(testMessage)
-      }
-
-      playAirportChime()
-    }}
-  >
-    🔊 Activer le son de la tour
-  </button>
+  type="button"
+  className="tower-sound-button"
+  onClick={() => {
+    setSoundEnabled(true)
+    playAirportChime()
+  }}
+>
+  🔊 Activer le son de la tour
+</button>
 )}
       <div className="tower-screen__background">
         <span className="tower-screen__route tower-screen__route--one" />
