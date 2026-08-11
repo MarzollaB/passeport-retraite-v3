@@ -58,28 +58,7 @@ function getPassportNumber(participant) {
   );
   return `P-${String((numericValue % 9999) + 1).padStart(4, '0')}`;
 }
-function getTowerMessage(settings) {
-  if (!settings?.tower_message_text) return null
 
-  const expiresAt = settings.tower_message_expires_at
-
-  if (
-    expiresAt &&
-    new Date(expiresAt).getTime() <= Date.now()
-  ) {
-    return null
-  }
-
-  return {
-    id: settings.tower_message_id,
-    icon: settings.tower_message_icon || '📢',
-    title:
-      settings.tower_message_title ||
-      'Message de l’équipage',
-    text: settings.tower_message_text,
-    expiresAt,
-  }
-}
 export default function App() {
   const [screen, setScreen] = useState('intro');
   const [showSplash, setShowSplash] = useState(true);
@@ -136,8 +115,18 @@ export default function App() {
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
 
-  const currentPath =
-  window.location.pathname.replace(/\/+$/, '') || '/'
+const [showUserMenu, setShowUserMenu] = useState(false);
+
+function changeTraveler() {
+  updateState({
+    participant: null,
+    completedMissionIds: [],
+    declinedMissionIds: [],
+    encounterCount: 0,
+    cooldownUntil: null,
+    passportFinalized: false,
+    finalizedAt: null,
+  });
 
   useEffect(() => {
     writeLocal('state', appState);
@@ -185,8 +174,6 @@ export default function App() {
 
       if (!active) return;
 
-      setTowerMessage(getTowerMessage(settings))
-
       setAppState((prev) => ({
         ...prev,
         eventRunning: settings?.missions_running ?? prev.eventRunning,
@@ -212,15 +199,11 @@ export default function App() {
         { event: '*', schema: 'public', table: 'event_settings' },
         (payload) => {
           const row = payload.new;
-
-          if (row) {
-            setTowerMessage(getTowerMessage(row))
-
-            setAppState(prev => ({
+          if (row)
+            setAppState((prev) => ({
               ...prev,
               eventRunning: row.missions_running,
-            }))
-          }
+            }));
         }
       )
       .subscribe();
@@ -256,60 +239,6 @@ export default function App() {
       supabase.removeChannel(journalChannel);
     };
   }, []);
-
-useEffect(() => {
-  if (!supabaseEnabled) return undefined
-
-  let active = true
-
-  async function refreshTowerStats() {
-    const [
-      participantsResult,
-      assignmentsResult,
-      passportsResult,
-      memoriesResult,
-    ] = await Promise.all([
-      supabase
-        .from('participants')
-        .select('*', { count: 'exact', head: true }),
-
-      supabase
-        .from('mission_assignments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'completed'),
-
-      supabase
-        .from('participants')
-        .select('*', { count: 'exact', head: true })
-        .eq('passport_finalized', true),
-
-      supabase
-        .from('journal_entries')
-        .select('*', { count: 'exact', head: true }),
-    ])
-
-    if (!active) return
-
-    setTowerStats({
-      participants: participantsResult.count || 0,
-      missions: assignmentsResult.count || 0,
-      passports: passportsResult.count || 0,
-      memories: memoriesResult.count || 0,
-    })
-  }
-
-  refreshTowerStats()
-
-  const interval = window.setInterval(
-    refreshTowerStats,
-    5000
-  )
-
-  return () => {
-    active = false
-    window.clearInterval(interval)
-  }
-}, [])
 
   useEffect(() => {
     if (!supabaseEnabled || !participant?.id) return undefined;
@@ -1643,7 +1572,7 @@ if (hasIncompleteAdditionalTraveler) {
           </div>
 
           <AnnouncementBanner />
-
+          
           <FlightBoard
             completedCount={appState.completedMissionIds.length}
             eventRunning={appState.eventRunning}
