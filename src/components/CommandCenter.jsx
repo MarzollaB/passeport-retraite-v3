@@ -89,7 +89,7 @@ export default function CommandCenter({
     const { error } = await supabase
       .from('event_settings')
       .update({
-        tower_message_id: selectedMessage.id,
+        tower_message_id: `${selectedMessage.id}-${Date.now()}`,
         tower_message_icon: selectedMessage.icon,
         tower_message_title: selectedMessage.title,
         tower_message_text: selectedMessage.text,
