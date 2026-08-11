@@ -7,6 +7,7 @@ export default function PassportBook({
   passportFinalized,
   isStamping,
   onValidate,
+  onEditProfile,
 }) {
   const passportCanBeValidated = completedCount >= REQUIRED_VISAS.length
 
@@ -19,7 +20,12 @@ export default function PassportBook({
         <p className="passport-page__heading">Patricia Airlines</p>
         <h2>Passeport de voyage</h2>
 
-        <div className="passport-photo-placeholder">
+        <button
+  type="button"
+  className="passport-photo-placeholder"
+  onClick={onEditProfile}
+  aria-label="Modifier ma photo de profil"
+>
   {participant.avatarUrl || participant.avatar_url ? (
     <img
       src={participant.avatarUrl || participant.avatar_url}
@@ -32,7 +38,7 @@ export default function PassportBook({
       <small>VOYAGEUR</small>
     </>
   )}
-</div>
+</button>
 
         <dl className="passport-identity">
           <div><dt>Nom</dt><dd>{participant.lastName}</dd></div>

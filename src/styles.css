@@ -2063,6 +2063,9 @@ body:has(.traveler-nav-shell) .toast {
 }
 .passport-photo-placeholder {
   overflow: hidden;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
 }
 
 .passport-photo {

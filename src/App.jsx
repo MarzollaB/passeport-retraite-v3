@@ -118,6 +118,12 @@ export default function App() {
   const passportNumber = getPassportNumber(participant);
   const currentPath = window.location.pathname;
 
+  useEffect(() => {
+    if (participant && screen === 'intro') {
+      setScreen('home');
+    }
+  }, [participant, screen]);
+
 const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -1600,7 +1606,7 @@ if (hasIncompleteAdditionalTraveler) {
             <span>💌</span>
             <div>
               <strong>Un petit mot privé pour Mimou</strong>
-              <small>Visible uniquement par Benoît après la soirée</small>
+              <small>Visible uniquement par Mimou après la soirée</small>
             </div>
             <i>›</i>
           </button>
@@ -1757,6 +1763,7 @@ if (hasIncompleteAdditionalTraveler) {
             passportFinalized={appState.passportFinalized}
             isStamping={isStamping}
             onValidate={validatePassport}
+            onEditProfile={() => setScreen('profile')}
           />
 
           <button className="text-button" onClick={() => setScreen('home')}>
@@ -1912,7 +1919,7 @@ if (hasIncompleteAdditionalTraveler) {
           <p className="eyebrow">Courrier confidentiel</p>
           <h1>Un petit mot pour Mimou</h1>
           <p className="subtitle">
-            Ce message ne sera jamais publié dans le carnet collectif. Benoît le
+            Ce message ne sera jamais publié dans le carnet collectif. Mimou le
             récupérera après la soirée.
           </p>
 
@@ -1941,8 +1948,7 @@ if (hasIncompleteAdditionalTraveler) {
             <p className="eyebrow">Message enregistré</p>
             <h1>Courrier confié à l’équipage</h1>
             <p>
-              Benoît pourra le compiler avec les autres messages et le remettre
-              à Mimou après la soirée.
+              Mimou découvrira votre message après la soirée - MERCI 💌
             </p>
           </section>
           <button
