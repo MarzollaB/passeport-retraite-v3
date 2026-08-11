@@ -59,6 +59,29 @@ function getPassportNumber(participant) {
   return `P-${String((numericValue % 9999) + 1).padStart(4, '0')}`;
 }
 
+function getTowerMessage(settings) {
+  if (!settings?.tower_message_text) return null
+
+  const expiresAt = settings.tower_message_expires_at
+
+  if (
+    expiresAt &&
+    new Date(expiresAt).getTime() <= Date.now()
+  ) {
+    return null
+  }
+
+  return {
+    id: settings.tower_message_id,
+    icon: settings.tower_message_icon || '📢',
+    title:
+      settings.tower_message_title ||
+      'Message de l’équipage',
+    text: settings.tower_message_text,
+    expiresAt,
+  }
+}
+
 export default function App() {
   const [screen, setScreen] = useState('intro');
   const [showSplash, setShowSplash] = useState(true);
@@ -173,7 +196,7 @@ const [showUserMenu, setShowUserMenu] = useState(false);
       if (!active) return;
 
       setTowerMessage(getTowerMessage(settings))
-      
+
       setAppState((prev) => ({
         ...prev,
         eventRunning: settings?.missions_running ?? prev.eventRunning,

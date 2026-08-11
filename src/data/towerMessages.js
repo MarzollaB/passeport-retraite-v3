@@ -70,7 +70,7 @@ export const AUTO_TOWER_MESSAGES = [
       icon: '🍷',
       label: 'Bar ouvert',
       title: 'Bar ouvert',
-      text: 'Patricia Airlines vous informe que le bar est officiellement ouvert. Les passagers peuvent désormais se présenter au comptoir. Voyagez avec modération, mais profitez pleinement de l’escale.',
+      text: 'Patricia Airlines vous informe que le bar reste officiellement ouvert. Les passagers peuvent toujours se présenter au comptoir. Voyagez avec modération, mais profitez pleinement de l’escale.',
     },
     {
       id: 'group-photo',
