@@ -172,6 +172,8 @@ const [showUserMenu, setShowUserMenu] = useState(false);
 
       if (!active) return;
 
+      setTowerMessage(getTowerMessage(settings))
+      
       setAppState((prev) => ({
         ...prev,
         eventRunning: settings?.missions_running ?? prev.eventRunning,
@@ -191,20 +193,24 @@ const [showUserMenu, setShowUserMenu] = useState(false);
     bootstrap();
 
     const settingsChannel = supabase
-      .channel('event-settings-live')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'event_settings' },
-        (payload) => {
-          const row = payload.new;
-          if (row)
-            setAppState((prev) => ({
-              ...prev,
-              eventRunning: row.missions_running,
-            }));
-        }
-      )
-      .subscribe();
+  .channel('event-settings-live')
+  .on(
+    'postgres_changes',
+    { event: '*', schema: 'public', table: 'event_settings' },
+    (payload) => {
+      const row = payload.new;
+
+      if (row) {
+        setTowerMessage(getTowerMessage(row))
+
+        setAppState((prev) => ({
+          ...prev,
+          eventRunning: row.missions_running,
+        }))
+      }
+    }
+  )
+  .subscribe();
 
     const journalChannel = supabase
       .channel('journal-live')
