@@ -7,6 +7,6 @@ export const CONFIG = {
   cooldownMinMinutes: 30,
   cooldownMaxMinutes: 50,
   demoCooldownSeconds: 45,
-  maxEncounterMissionsPerParticipant: 2,
+  maxEncounterMissionsPerParticipant: 4,
   maxAssignmentsPerMission: 3
 }
