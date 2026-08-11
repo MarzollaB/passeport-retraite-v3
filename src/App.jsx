@@ -114,19 +114,9 @@ export default function App() {
 
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
+  const currentPath = window.location.pathname;
 
 const [showUserMenu, setShowUserMenu] = useState(false);
-
-function changeTraveler() {
-  updateState({
-    participant: null,
-    completedMissionIds: [],
-    declinedMissionIds: [],
-    encounterCount: 0,
-    cooldownUntil: null,
-    passportFinalized: false,
-    finalizedAt: null,
-  });
 
   useEffect(() => {
     writeLocal('state', appState);
