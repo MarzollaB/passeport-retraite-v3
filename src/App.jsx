@@ -111,6 +111,8 @@ export default function App() {
   const previousJournalCount = useRef(appState.journalEntries.length);
 
   const avatarInputRef = useRef(null);
+  const missionPhotoInputRef = useRef(null);
+  const missionAnswerRef = useRef(null);
 
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
@@ -1802,35 +1804,62 @@ if (hasIncompleteAdditionalTraveler) {
                 Votre contribution au carnet
               </label>
               <textarea
-                id="mission-answer"
-                value={answer}
-                onChange={(event) => setAnswer(event.target.value)}
-                rows="7"
-                placeholder="Écrivez votre réponse ici…"
-              />
+  ref={missionAnswerRef}
+  id="mission-answer"
+  value={answer}
+  onChange={(event) => setAnswer(event.target.value)}
+  onFocus={() => {
+    window.setTimeout(() => {
+      missionAnswerRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 350)
+  }}
+  rows="7"
+  placeholder="Écrivez votre réponse ici…"
+/>
             </>
           )}
 
-          {currentMission.responseType === 'photo' && (
-            <section className="photo-mission">
-              <span>📷</span>
-              <div>
-                <strong>Utilisez l’appareil photo de votre téléphone.</strong>
-                <p>
-                  La photo reste sur votre téléphone et peut être ajoutée à
-                  l’album partagé.
-                </p>
-              </div>
-              <a
-                className="button button--outline"
-                href={CONFIG.albumUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Ouvrir l’album partagé
-              </a>
-            </section>
-          )}
+{currentMission.responseType === 'photo' && (
+  <section className="photo-mission">
+    <span>📷</span>
+
+    <div>
+      <strong>Utilisez l’appareil photo de votre téléphone.</strong>
+      <p>
+        Prenez votre photo maintenant, puis ajoutez-la à
+        l’album partagé si vous le souhaitez.
+      </p>
+    </div>
+
+    <input
+      ref={missionPhotoInputRef}
+      type="file"
+      accept="image/*"
+      capture="environment"
+      hidden
+    />
+
+    <button
+      type="button"
+      className="button button--gold"
+      onClick={() => missionPhotoInputRef.current?.click()}
+    >
+      📷 Prendre une photo
+    </button>
+
+    <a
+      className="button button--outline"
+      href={CONFIG.albumUrl}
+      target="_blank"
+      rel="noreferrer"
+    >
+      Ouvrir l’album partagé
+    </a>
+  </section>
+)}
 
           <button className="button button--gold" onClick={completeMission}>
             Mission accomplie
