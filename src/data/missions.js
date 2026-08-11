@@ -8,19 +8,19 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 8,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Souvenir'
   },
   {
     id: 'personal-words-01',
-    title: 'Trois mots pour Mimou',
+    title: 'Trois mots pour Patricia',
     prompt: 'Quels sont les trois mots qui décrivent le mieux Patricia selon vous ?',
     responseType: 'text',
     missionKind: 'personal',
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 7,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Portrait'
   },
   {
@@ -32,7 +32,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 7,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Carrière'
   },
   {
@@ -44,7 +44,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 6,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Carrière'
   },
   {
@@ -56,7 +56,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 3,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Rencontre'
   },
   {
@@ -68,7 +68,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 3,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Rencontre'
   },
   {
@@ -80,7 +80,79 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 3,
-    maxAssignments: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-mimou-01',
+    title: 'Pourquoi Mimou ?',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui pourquoi Patricia se fait appeler “Mimou”. Notez ensuite ce qu’elle vous a raconté.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-career-start-01',
+    title: 'Le début de sa carrière',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui quand Patricia a commencé à travailler et dans quel service. Notez ensuite sa réponse.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-career-memory-01',
+    title: 'Un souvenir de ses débuts',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui quel est le plus beau souvenir de Patricia au début de sa carrière. Partagez ensuite ce qu’elle vous a raconté.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-teaching-01',
+    title: 'Pourquoi enseigner ?',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui pourquoi Patricia a voulu devenir enseignante. Notez ensuite sa réponse.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-career-path-01',
+    title: 'Son parcours professionnel',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui dans quels services Patricia a travaillé au cours de sa carrière. Notez ce qu’elle vous a raconté.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
+    journalLabel: 'Rencontre'
+  },
+  {
+    id: 'encounter-color-career-quality-01',
+    title: 'Une qualité professionnelle',
+    prompt: 'Trouvez une personne portant une couleur différente de la vôtre et demandez-lui quel trait de caractère ou quelle qualité a le plus aidé Patricia dans son parcours professionnel. Partagez ensuite sa réponse.',
+    responseType: 'text',
+    missionKind: 'encounter',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 3,
+    maxAssignments: 12,
     journalLabel: 'Rencontre'
   },
   {
@@ -92,7 +164,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 6,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Voyage'
   },
   {
@@ -104,7 +176,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 6,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Anecdote'
   },
   {
@@ -120,6 +192,18 @@ export const MISSIONS = [
     journalLabel: 'Photo'
   },
   {
+    id: 'photo-colors-patricia-01',
+    title: 'Photo multicolore',
+    prompt: 'Trouvez trois personnes portant chacune une couleur différente de la vôtre et demandez une photo ensemble avec Patricia.',
+    responseType: 'photo',
+    missionKind: 'photo',
+    targetGroups: ['*'],
+    sourceGroups: ['*'],
+    weight: 4,
+    maxAssignments: 10,
+    journalLabel: 'Photo'
+  },
+  {
     id: 'photo-travel-object-01',
     title: 'Mission photo surprise',
     prompt: 'Trouvez un objet ou un élément de décoration qui évoque le voyage et réalisez une photo amusante avec lui.',
@@ -128,7 +212,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 4,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Photo'
   },
   {
@@ -140,7 +224,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 4,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Photo'
   },
   {
@@ -152,7 +236,7 @@ export const MISSIONS = [
     targetGroups: ['*'],
     sourceGroups: ['*'],
     weight: 5,
-    maxAssignments: 3,
+    maxAssignments: 12,
     journalLabel: 'Merci'
   }
 ]
