@@ -1557,7 +1557,9 @@ if (hasIncompleteAdditionalTraveler) {
           <div className="home-heading">
             <div>
               <p className="eyebrow">Passeport validé</p>
-              <h1>Bonjour {participant.firstName}</h1>
+              <h1>
+                Bonjour {participant.displayName || participant.firstName}
+              </h1>
             </div>
             <button
               className="mini-passport"
