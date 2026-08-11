@@ -8,6 +8,9 @@ import SplashScreen from './components/SplashScreen';
 import PassportCelebration from './components/PassportCelebration';
 import AnnouncementBanner from './components/AnnouncementBanner'
 import TravelerNav from './components/TravelerNav'
+import CommandCenter from './components/CommandCenter'
+import TowerScreen from './components/TowerScreen'
+import MimouPage from './components/MimouPage'
 import Countdown from './components/Countdown';
 import Toast from './components/Toast';
 import { GROUPS } from './data/groups';
@@ -68,7 +71,13 @@ export default function App() {
     selectedLastName: '',
     firstName: '',
     customLastName: '',
+    email: '',
   });
+
+  const [travelMode, setTravelMode] = useState('solo');
+
+  const [additionalTravelers, setAdditionalTravelers] = useState([]);
+
   const [currentMission, setCurrentMission] = useState(null);
   const [earnedDestination, setEarnedDestination] = useState(null);
   const [answer, setAnswer] = useState('');
@@ -81,48 +90,50 @@ export default function App() {
   const [connectedParticipants, setConnectedParticipants] = useState([]);
   const [cockpitUpdatedAt, setCockpitUpdatedAt] = useState(null);
   const [grandTravelers, setGrandTravelers] = useState([]);
+  const [towerMessage, setTowerMessage] = useState(null)
+
+  const [profileForm, setProfileForm] = useState({
+    displayName: '',
+    email: '',
+    meetingPlace: '',
+    meetingYear: '',
+  })
+
+  const [avatarPreview, setAvatarPreview] = useState('')
+  const [avatarFile, setAvatarFile] = useState(null)
+
+  const [towerStats, setTowerStats] = useState({
+    participants: 0,
+    missions: 0,
+    passports: 0,
+    memories: 0,
+  })
   const previousJournalCount = useRef(appState.journalEntries.length);
+
+  const avatarInputRef = useRef(null);
 
   const participant = appState.participant;
   const passportNumber = getPassportNumber(participant);
+  const currentPath = window.location.pathname;
 
 const [showUserMenu, setShowUserMenu] = useState(false);
-
-function changeTraveler() {
-  updateState({
-    participant: null,
-    completedMissionIds: [],
-    declinedMissionIds: [],
-    encounterCount: 0,
-    cooldownUntil: null,
-    passportFinalized: false,
-    finalizedAt: null,
-  });
-
-  setCurrentMission(null);
-  setEarnedDestination(null);
-  setAnswer('');
-  setPrivateMessage('');
-  setRegistration({
-    groupName: '',
-    selectedLastName: '',
-    firstName: '',
-    customLastName: '',
-    email: '',
-  });
-
-  setShowUserMenu(false);
-  setScreen('register');
-}
-
-function goHome() {
-  setShowUserMenu(false);
-  setScreen('home');
-}
 
   useEffect(() => {
     writeLocal('state', appState);
   }, [appState]);
+
+  useEffect(() => {
+    if (!participant) return
+  
+    setProfileForm({
+      displayName:
+        participant.displayName ||
+        `${participant.firstName} ${participant.lastName}`,
+      email: participant.email || '',
+      meetingPlace: participant.meetingPlace || '',
+      meetingYear: participant.meetingYear || '',
+    })
+  }, [participant])
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -307,12 +318,53 @@ function goHome() {
   );
 
   function closeSplash() {
-    unlockSound();
-    setSplashVisible(false);
+    unlockSound()
+    setSplashVisible(false)
   
     window.setTimeout(() => {
-      setShowSplash(false);
-    }, 500);
+      setShowSplash(false)
+    }, 500)
+  }
+  function updateAdditionalTraveler(index, field, value) {
+    setAdditionalTravelers((current) =>
+      current.map((traveler, travelerIndex) =>
+        travelerIndex === index
+          ? {
+              ...traveler,
+              [field]: value,
+            }
+          : traveler
+      )
+    );
+  }
+  
+  function addAdditionalTraveler() {
+    setAdditionalTravelers((current) => {
+      if (current.length >= 4) return current;
+  
+      return [
+        ...current,
+        {
+          firstName: '',
+          lastName: '',
+        },
+      ];
+    });
+  }
+  
+  function removeAdditionalTraveler(index) {
+    setAdditionalTravelers((current) => {
+      const minimumAdditionalTravelers =
+        travelMode === 'group' ? 2 : 1;
+  
+      if (current.length <= minimumAdditionalTravelers) {
+        return current;
+      }
+  
+      return current.filter(
+        (_, travelerIndex) => travelerIndex !== index
+      );
+    });
   }
 
   function updateState(patch) {
@@ -346,7 +398,9 @@ function goHome() {
       customLastName: '',
       email: '',
     });
-  
+    
+    setTravelMode('solo');
+    setAdditionalTravelers([]);
     setScreen('register');
   }
 
@@ -374,12 +428,42 @@ function goHome() {
 
   async function createParticipant() {
     const firstName = registration.firstName.trim();
+    const email = registration.email.trim().toLowerCase();
 
-    const lastName = (
-      registration.selectedLastName === '__other__'
-        ? registration.customLastName
-        : registration.selectedLastName || registration.customLastName
-    ).trim();
+    const mainTraveler = {
+      firstName,
+      lastName: (
+        registration.selectedLastName === '__other__'
+          ? registration.customLastName
+          : registration.selectedLastName ||
+            registration.customLastName
+      ).trim(),
+    };
+    
+    const otherTravelers = additionalTravelers.map(
+      (traveler) => ({
+        firstName: traveler.firstName.trim(),
+        lastName: traveler.lastName.trim(),
+      })
+    );
+    
+    const members =
+      travelMode === 'solo'
+        ? [mainTraveler]
+        : [mainTraveler, ...otherTravelers];
+    
+    const displayName =
+      travelMode === 'solo'
+        ? `${mainTraveler.firstName} ${mainTraveler.lastName}`
+        : travelMode === 'couple'
+          ? members
+              .map((traveler) => traveler.firstName)
+              .join(' & ')
+          : members
+              .map((traveler) => traveler.firstName)
+              .join(', ');
+
+              const lastName = mainTraveler.lastName;
 
     const groupName = registration.groupName;
 
@@ -389,6 +473,20 @@ function goHome() {
       );
       return;
     }
+
+    const hasIncompleteAdditionalTraveler =
+  travelMode !== 'solo' &&
+  otherTravelers.some(
+    (traveler) =>
+      !traveler.firstName || !traveler.lastName
+  );
+
+if (hasIncompleteAdditionalTraveler) {
+  setToast(
+    'Complétez le prénom et le nom de chaque voyageur.'
+  );
+  return;
+}
 
     if (!supabaseEnabled) {
       const nextParticipant = {
@@ -404,9 +502,7 @@ function goHome() {
 
     const { data: existingParticipant, error: searchError } = await supabase
       .from('participants')
-      .select(
-        'id, first_name, last_name, group_name, passport_finalized, finalized_at'
-      )
+      .select('id, first_name, last_name, group_name, email, travel_mode, display_name, members, avatar_url, meeting_place, meeting_year, passport_finalized, finalized_at')
       .eq('group_name', groupName)
       .ilike('first_name', firstName)
       .ilike('last_name', lastName)
@@ -429,13 +525,38 @@ function goHome() {
         firstName: existingParticipant.first_name,
         lastName: existingParticipant.last_name,
         groupName: existingParticipant.group_name,
+        email: existingParticipant.email || '',
+        travelMode: existingParticipant.travel_mode || 'solo',
+        displayName:
+          existingParticipant.display_name ||
+          `${existingParticipant.first_name} ${existingParticipant.last_name}`,
+        members:
+          existingParticipant.members?.length
+            ? existingParticipant.members
+            : [
+                {
+                  firstName: existingParticipant.first_name,
+                  lastName: existingParticipant.last_name,
+                },
+              ],
+        avatarUrl: existingParticipant.avatar_url || '',
+        meetingPlace: existingParticipant.meeting_place || '',
+        meetingYear: existingParticipant.meeting_year || '',
       };
-    } else {
+    }
+    else {
       nextParticipant = {
         id: crypto.randomUUID(),
         firstName,
         lastName,
         groupName,
+        email,
+        travelMode,
+        displayName,
+        members,
+        avatarUrl: '',
+        meetingPlace: '',
+        meetingYear: '',
       };
 
       const { error: insertError } = await supabase
@@ -445,6 +566,13 @@ function goHome() {
           first_name: nextParticipant.firstName,
           last_name: nextParticipant.lastName,
           group_name: nextParticipant.groupName,
+          email: email || null,
+          travel_mode: travelMode,
+          display_name: displayName,
+          members,
+          avatar_url: null,
+          meeting_place: null,
+          meeting_year: null,
           last_seen_at: new Date().toISOString(),
         });
 
@@ -485,6 +613,10 @@ function goHome() {
         .from('participants')
         .update({
           last_seen_at: new Date().toISOString(),
+          ...(email ? { email } : {}),
+          travel_mode: travelMode,
+          display_name: displayName,
+          members,
         })
         .eq('id', nextParticipant.id);
 
@@ -637,6 +769,194 @@ function goHome() {
     }
   }
 
+  async function handleAvatarChange(event) {
+    const selectedFile = event.target.files?.[0]
+  
+    if (!selectedFile) return
+  
+    const fileName = selectedFile.name.toLowerCase()
+  
+    const isHeic =
+      selectedFile.type === 'image/heic' ||
+      selectedFile.type === 'image/heif' ||
+      fileName.endsWith('.heic') ||
+      fileName.endsWith('.heif')
+  
+    const isRegularImage = selectedFile.type.startsWith('image/')
+  
+    if (!isRegularImage && !isHeic) {
+      setToast('Veuillez choisir une image.')
+      event.target.value = ''
+      return
+    }
+  
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      setToast('La photo est trop lourde. Taille maximale : 10 Mo.')
+      event.target.value = ''
+      return
+    }
+  
+    try {
+      let finalFile = selectedFile
+  
+      if (isHeic) {
+        setToast('Conversion de la photo iPhone en cours…')
+  
+        const heic2anyModule = await import('heic2any');
+        const convertHeic = heic2anyModule.default || heic2anyModule;
+
+        const convertedResult = await convertHeic({
+          blob: selectedFile,
+          toType: 'image/jpeg',
+          quality: 0.85,
+        });
+  
+        const convertedBlob = Array.isArray(convertedResult)
+          ? convertedResult[0]
+          : convertedResult
+  
+        const jpegName = selectedFile.name.replace(
+          /\.(heic|heif)$/i,
+          '.jpg'
+        )
+  
+        finalFile = new File([convertedBlob], jpegName, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        })
+      }
+  
+      if (avatarPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview)
+      }
+  
+      const previewUrl = URL.createObjectURL(finalFile)
+  
+      setAvatarFile(finalFile)
+      setAvatarPreview(previewUrl)
+  
+      if (isHeic) {
+        setToast('Photo iPhone convertie. Vous pouvez enregistrer le profil.')
+      }
+    } catch (error) {
+      console.error('Erreur de conversion HEIC :', error)
+  
+      console.error(
+        'Détail de l’erreur HEIC :',
+        error?.code,
+        error?.message,
+        error
+      )
+      
+      setToast(
+        'Cette photo HEIC ne peut pas être convertie. Sur iPhone, choisissez une capture d’écran de la photo ou réglez Appareil photo > Formats > Le plus compatible.'
+      )
+      
+      event.target.value = ''
+    }
+  }
+
+  async function saveProfile() {
+    if (!participant?.id) return;
+  
+    const cleanedDisplayName = profileForm.displayName.trim();
+    const cleanedEmail = profileForm.email.trim().toLowerCase();
+    const cleanedMeetingPlace = profileForm.meetingPlace.trim();
+    const cleanedMeetingYear = profileForm.meetingYear.trim();
+  
+    if (!cleanedDisplayName) {
+      setToast('Indiquez le nom à afficher sur votre passeport.');
+      return;
+    }
+  
+    try {
+      let avatarUrl =
+        participant.avatarUrl ||
+        participant.avatar_url ||
+        null;
+  
+      /*
+       * Si une nouvelle image a été choisie :
+       * 1. elle est envoyée dans le bucket Supabase "avatars" ;
+       * 2. son adresse publique est enregistrée dans le participant.
+       */
+      if (avatarFile && supabaseEnabled) {
+        const extension =
+          avatarFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+  
+        const safeExtension = extension.replace(/[^a-z0-9]/g, '') || 'jpg';
+  
+        const avatarPath = `${participant.id}/avatar-${Date.now()}.${safeExtension}`;
+  
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(avatarPath, avatarFile, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: avatarFile.type,
+          });
+  
+        if (uploadError) {
+          throw uploadError;
+        }
+  
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(avatarPath);
+  
+        avatarUrl = publicUrlData.publicUrl;
+      }
+  
+      if (supabaseEnabled) {
+        const { error: updateError } = await supabase
+          .from('participants')
+          .update({
+            display_name: cleanedDisplayName,
+            email: cleanedEmail || null,
+            meeting_place: cleanedMeetingPlace || null,
+            meeting_year: cleanedMeetingYear || null,
+            avatar_url: avatarUrl,
+            last_seen_at: new Date().toISOString(),
+          })
+          .eq('id', participant.id);
+  
+        if (updateError) {
+          throw updateError;
+        }
+      }
+  
+      const updatedParticipant = {
+        ...participant,
+        displayName: cleanedDisplayName,
+        email: cleanedEmail,
+        meetingPlace: cleanedMeetingPlace,
+        meetingYear: cleanedMeetingYear,
+        avatarUrl,
+      };
+  
+      setAppState((previousState) => ({
+        ...previousState,
+        participant: updatedParticipant,
+      }));
+  
+      if (avatarPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+  
+      setAvatarFile(null);
+      setAvatarPreview(avatarUrl || '');
+      setToast('Votre profil et votre photo ont bien été enregistrés.');
+      setScreen('home');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du profil :', error);
+  
+      setToast(
+        error?.message ||
+          'Le profil n’a pas pu être enregistré. Vérifiez la connexion.'
+      );
+    }
+  }
+
   async function savePrivateMessage() {
     if (!privateMessage.trim()) {
       setToast('Écrivez votre message avant de le confier à l’équipage.');
@@ -740,14 +1060,79 @@ function goHome() {
     window.location.reload();
   }
 
-if (showSplash) {
-  return (
-    <SplashScreen
-      visible={splashVisible}
-      onContinue={closeSplash}
-    />
-  );
-}
+  if (currentPath === '/mimou') {
+    return <MimouPage />
+  }
+
+  if (currentPath === '/tower') {
+    return (
+      <TowerScreen
+        eventRunning={appState.eventRunning}
+        towerMessage={towerMessage}
+        stats={towerStats}
+      />
+    )
+  }
+  
+  if (currentPath === '/command') {
+    return (
+      <>
+        <Toast
+          message={toast}
+          onClose={() => setToast('')}
+        />
+  
+        {!adminUnlocked ? (
+          <Layout compact>
+            <p className="eyebrow">
+              Accès réservé à l’équipage
+            </p>
+  
+            <h1>Poste de commandement</h1>
+  
+            <section className="admin-login">
+              <label htmlFor="command-pin">
+                Code équipage
+              </label>
+  
+              <input
+                id="command-pin"
+                type="password"
+                inputMode="numeric"
+                value={adminPin}
+                onChange={event =>
+                  setAdminPin(event.target.value)
+                }
+                placeholder="••••"
+              />
+  
+              <button
+                className="button button--dark"
+                onClick={unlockAdmin}
+              >
+                Ouvrir le poste de commandement
+              </button>
+            </section>
+          </Layout>
+        ) : (
+          <CommandCenter
+            eventRunning={appState.eventRunning}
+            towerMessage={towerMessage}
+            onSetEventRunning={setEventRunning}
+          />
+        )}
+      </>
+    )
+  }
+
+  if (showSplash) {
+    return (
+      <SplashScreen
+        visible={splashVisible}
+        onContinue={closeSplash}
+      />
+    )
+  };
 
   return (
     <>
@@ -759,6 +1144,7 @@ if (showSplash) {
       participant={participant}
       onHome={goToTravelerHome}
       onPassport={() => setScreen('passport')}
+      onProfile={() => setScreen('profile')}
       onChangeTraveler={changeTraveler}
     />
   )}
@@ -808,6 +1194,83 @@ if (showSplash) {
             Choisissez d’abord votre groupe, puis votre nom de famille. Indiquez
             ensuite votre prénom.
           </p>
+          <section className="travel-mode-selector">
+  <p className="travel-mode-selector__label">
+    Comment participez-vous aujourd’hui ?
+  </p>
+
+  <div className="travel-mode-selector__grid">
+    <button
+      type="button"
+      className={
+        travelMode === 'solo'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('solo');
+        setAdditionalTravelers([]);
+      }}
+    >
+      <span>👤</span>
+      <strong>Seul(e)</strong>
+      <small>Un voyageur</small>
+    </button>
+
+    <button
+      type="button"
+      className={
+        travelMode === 'couple'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('couple');
+        setAdditionalTravelers([
+          {
+            firstName: '',
+            lastName: '',
+          },
+        ]);
+      }}
+    >
+      <span>👥</span>
+      <strong>À deux</strong>
+      <small>Un passeport commun</small>
+    </button>
+
+    <button
+      type="button"
+      className={
+        travelMode === 'group'
+          ? 'travel-mode-card travel-mode-card--selected'
+          : 'travel-mode-card'
+      }
+      onClick={() => {
+        setTravelMode('group');
+
+        setAdditionalTravelers(current =>
+          current.length >= 2
+            ? current
+            : [
+                {
+                  firstName: '',
+                  lastName: '',
+                },
+                {
+                  firstName: '',
+                  lastName: '',
+                },
+              ]
+        );
+      }}
+    >
+      <span>👨‍👩‍👧‍👦</span>
+      <strong>En groupe</strong>
+      <small>De 3 à 5 voyageurs</small>
+    </button>
+  </div>
+</section>
 
           <label htmlFor="registration-group">Votre groupe</label>
           <select
@@ -819,6 +1282,7 @@ if (showSplash) {
                 selectedLastName: '',
                 firstName: '',
                 customLastName: '',
+                email: '',
               })
             }
           >
@@ -896,6 +1360,135 @@ if (showSplash) {
                   placeholder="Prénom"
                   autoComplete="given-name"
                 />
+                <label htmlFor="registration-email">
+  Adresse e-mail (facultatif)
+</label>
+
+<input
+  id="registration-email"
+  type="email"
+  inputMode="email"
+  value={registration.email}
+  onChange={(event) =>
+    setRegistration({
+      ...registration,
+      email: event.target.value,
+    })
+  }
+  placeholder="nom@exemple.be"
+  autoComplete="email"
+/>
+
+<small className="form-help">
+  Elle servira uniquement à vous envoyer le lien vers les photos de la soirée.
+</small>
+
+{travelMode !== 'solo' && (
+  <section className="additional-travelers">
+    <div className="additional-travelers__heading">
+      <div>
+        <p className="eyebrow">
+          {travelMode === 'couple'
+            ? 'Deuxième voyageur'
+            : 'Autres voyageurs'}
+        </p>
+
+        <h2>
+          {travelMode === 'couple'
+            ? 'Qui voyage avec vous ?'
+            : 'Qui compose votre groupe ?'}
+        </h2>
+      </div>
+
+      <span>
+        {additionalTravelers.length + 1}/
+        {travelMode === 'couple' ? 2 : 5}
+      </span>
+    </div>
+
+    {additionalTravelers.map((traveler, index) => (
+      <article
+        className="additional-traveler-card"
+        key={index}
+      >
+        <div className="additional-traveler-card__title">
+          <strong>Voyageur {index + 2}</strong>
+
+          {travelMode === 'group' &&
+            additionalTravelers.length > 2 && (
+              <button
+                type="button"
+                onClick={() =>
+                  removeAdditionalTraveler(index)
+                }
+                aria-label={`Supprimer le voyageur ${
+                  index + 2
+                }`}
+              >
+                ×
+              </button>
+            )}
+        </div>
+
+        <label
+          htmlFor={`additional-first-name-${index}`}
+        >
+          Prénom
+        </label>
+
+        <input
+          id={`additional-first-name-${index}`}
+          value={traveler.firstName}
+          onChange={(event) =>
+            updateAdditionalTraveler(
+              index,
+              'firstName',
+              event.target.value
+            )
+          }
+          placeholder="Prénom"
+          autoComplete="off"
+        />
+
+        <label
+          htmlFor={`additional-last-name-${index}`}
+        >
+          Nom
+        </label>
+
+        <input
+          id={`additional-last-name-${index}`}
+          value={traveler.lastName}
+          onChange={(event) =>
+            updateAdditionalTraveler(
+              index,
+              'lastName',
+              event.target.value
+            )
+          }
+          placeholder="Nom"
+          autoComplete="off"
+        />
+      </article>
+    ))}
+
+    {travelMode === 'group' &&
+      additionalTravelers.length < 4 && (
+        <button
+          type="button"
+          className="additional-travelers__add"
+          onClick={addAdditionalTraveler}
+        >
+          ＋ Ajouter un voyageur
+        </button>
+      )}
+
+    <small className="form-help">
+      Tous les voyageurs inscrits ici partageront le même
+      passeport et la même progression.
+    </small>
+  </section>
+)}
                 <button
                   className="button button--dark"
                   onClick={createParticipant}
@@ -1010,6 +1603,20 @@ if (showSplash) {
             <i>›</i>
           </button>
 
+          <button
+            className="navigation-card"
+            onClick={() => window.open(CONFIG.albumUrl, '_blank')}
+          >
+            <span>📸</span>
+            <div>
+              <strong>Ajouter vos photos</strong>
+              <small>
+                Partagez vos photos de la soirée dans l’album de Patricia
+              </small>
+            </div>
+            <i>›</i>
+          </button>
+
           <p className="connection-note">
             {supabaseEnabled
               ? '● Mode soirée connecté'
@@ -1018,34 +1625,143 @@ if (showSplash) {
         </Layout>
       )}
 
-{screen === 'passport' && participant && (
+{screen === 'profile' && participant && (
   <Layout>
-    <div className="passport-page-heading">
-      <button
-        type="button"
-        className="passport-back-button"
-        onClick={() => setScreen('home')}
-      >
-        <span>←</span>
-        Retour à l’accueil
-      </button>
+    <p className="eyebrow">Profil voyageur</p>
 
-      <div>
-        <p className="eyebrow">Document de voyage</p>
-        <h1>Votre passeport</h1>
-      </div>
-    </div>
+    <h1>Mon profil</h1>
 
-    <PassportBook
-      participant={participant}
-      passportNumber={passportNumber}
-      completedCount={appState.completedMissionIds.length}
-      passportFinalized={appState.passportFinalized}
-      isStamping={isStamping}
-      onValidate={validatePassport}
-    />
+    <p className="subtitle">
+      Personnalisez votre passeport.
+      Vous pourrez modifier ces informations
+      quand vous le souhaitez.
+    </p>
+
+    <section className="profile-card">
+
+    <div className="profile-avatar">
+  <button
+    className="profile-avatar__button"
+    type="button"
+    onClick={() => avatarInputRef.current?.click()}
+  >
+    {avatarPreview || participant.avatarUrl ? (
+      <img
+        src={avatarPreview || participant.avatarUrl}
+        alt="Photo du passeport"
+      />
+    ) : (
+      <>
+        <span>📷</span>
+        <small>Ajouter une photo</small>
+      </>
+    )}
+  </button>
+
+  <input
+    ref={avatarInputRef}
+    type="file"
+    accept="image/jpeg,image/png"    
+    capture="user"
+    onChange={handleAvatarChange}
+    hidden
+  />
+</div>
+
+      <label>Nom affiché</label>
+
+      <input
+        value={profileForm.displayName}
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            displayName:event.target.value,
+          })
+        }
+      />
+
+      <label>Adresse e-mail</label>
+
+      <input
+        type="email"
+        value={profileForm.email}
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            email:event.target.value,
+          })
+        }
+      />
+
+      <label>
+        Où avez-vous rencontré Patricia ?
+      </label>
+
+      <input
+        value={profileForm.meetingPlace}
+        placeholder="Ex : École, Hôpital..."
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            meetingPlace:event.target.value,
+          })
+        }
+      />
+
+      <label>
+        Depuis quelle année ?
+      </label>
+
+      <input
+        value={profileForm.meetingYear}
+        placeholder="Ex : 1998"
+        onChange={(event)=>
+          setProfileForm({
+            ...profileForm,
+            meetingYear:event.target.value,
+          })
+        }
+      />
+
+    </section>
+
+    <button
+      type="button"
+      className="button button--gold"
+      onClick={saveProfile}
+    >
+      Enregistrer mon profil
+    </button>
+
+    <button
+      className="text-button"
+      onClick={() => setScreen('home')}
+    >
+      ← Retour
+    </button>
+
   </Layout>
 )}
+
+      {screen === 'passport' && participant && (
+        <Layout>
+          <p className="eyebrow">Document de voyage</p>
+          <h1>Votre passeport</h1>
+
+          <PassportBook
+            participant={participant}
+            passportNumber={passportNumber}
+            completedCount={appState.completedMissionIds.length}
+            passportFinalized={appState.passportFinalized}
+            isStamping={isStamping}
+            onValidate={validatePassport}
+          />
+
+          <button className="text-button" onClick={() => setScreen('home')}>
+            ← Retour
+          </button>
+        </Layout>
+      )}
 
       {screen === 'stamp' && earnedDestination && (
         <Layout compact>

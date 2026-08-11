@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.111.0",
+    "heic2any": "^0.0.4",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-pageflip": "^2.0.3",
     "vite": "^7.3.6"
   },
   "devDependencies": {

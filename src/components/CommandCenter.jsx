@@ -21,25 +21,27 @@ export default function CommandCenter({
 
   const [isSending, setIsSending] = useState(false)
 
-  const [resetConfirmationOpen, setResetConfirmationOpen] =
-  useState(false)
-
-const [resetConfirmationText, setResetConfirmationText] =
-  useState('')
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetPin, setResetPin] = useState('')
+  const [resetConfirmed, setResetConfirmed] = useState(false)
 
   const selectedMessage =
     PRESET_TOWER_MESSAGES.find(
       message => message.id === selectedMessageId
     ) || null
 
-    async function resetAllEventData() {
-      if (!supabaseEnabled) {
-        window.alert('Supabase n’est pas connecté.')
+    async function resetEventData() {
+      if (!supabaseEnabled || isSending) return
+    
+      if (!resetConfirmed) {
+        window.alert(
+          'Cochez la confirmation avant de réinitialiser les données.'
+        )
         return
       }
     
-      if (resetConfirmationText.trim().toUpperCase() !== 'RESET') {
-        window.alert('Écrivez exactement RESET pour confirmer.')
+      if (resetPin.trim() !== '1608') {
+        window.alert('Code équipage incorrect.')
         return
       }
     
@@ -48,24 +50,28 @@ const [resetConfirmationText, setResetConfirmationText] =
       const { error } = await supabase.rpc(
         'reset_patricia_event_data',
         {
-          p_pin: '1608',
+          p_pin: resetPin.trim(),
         }
       )
     
       setIsSending(false)
     
       if (error) {
+        console.error(error)
+      
         window.alert(
-          'La réinitialisation a échoué. Aucune donnée n’a été supprimée.'
+          `Erreur : ${error.message}`
         )
+      
         return
       }
     
-      setResetConfirmationOpen(false)
-      setResetConfirmationText('')
+      setResetOpen(false)
+      setResetPin('')
+      setResetConfirmed(false)
     
       window.alert(
-        'Toutes les données de test ont été supprimées.'
+        'Les données créées pendant les tests ont été supprimées.'
       )
     
       window.location.reload()
@@ -272,44 +278,61 @@ const [resetConfirmationText, setResetConfirmationText] =
 
   <h2>Réinitialiser les données de test</h2>
 
-  <p>
-    Cette action supprimera définitivement les participants,
-    les missions accomplies, les anecdotes et les messages privés.
+  <p className="command-danger-zone__text">
+    Cette action supprimera les participants enregistrés,
+    leur progression, les anecdotes et les messages privés.
+    La configuration de l’application restera intacte.
   </p>
 
-  {!resetConfirmationOpen ? (
+  {!resetOpen ? (
     <button
       type="button"
       className="command-reset-button"
-      onClick={() => setResetConfirmationOpen(true)}
+      onClick={() => setResetOpen(true)}
     >
-      🗑 Réinitialiser toutes les données
+      🗑 Préparer la réinitialisation
     </button>
   ) : (
     <div className="command-reset-confirmation">
-      <strong>Confirmer la suppression définitive</strong>
+      <label className="command-reset-check">
+        <input
+          type="checkbox"
+          checked={resetConfirmed}
+          onChange={(event) =>
+            setResetConfirmed(event.target.checked)
+          }
+        />
 
-      <p>
-        Écrivez exactement <b>RESET</b> ci-dessous.
-      </p>
+        <span>
+          Je confirme vouloir supprimer toutes les données
+          créées pendant les tests.
+        </span>
+      </label>
+
+      <label htmlFor="reset-pin">
+        Code équipage
+      </label>
 
       <input
-        type="text"
-        value={resetConfirmationText}
+        id="reset-pin"
+        type="password"
+        inputMode="numeric"
+        value={resetPin}
         onChange={(event) =>
-          setResetConfirmationText(event.target.value)
+          setResetPin(event.target.value)
         }
-        placeholder="RESET"
+        placeholder="••••"
         autoComplete="off"
       />
 
-      <div className="command-reset-confirmation__buttons">
+      <div className="command-reset-actions">
         <button
           type="button"
           className="button button--soft"
           onClick={() => {
-            setResetConfirmationOpen(false)
-            setResetConfirmationText('')
+            setResetOpen(false)
+            setResetPin('')
+            setResetConfirmed(false)
           }}
           disabled={isSending}
         >
@@ -319,17 +342,22 @@ const [resetConfirmationText, setResetConfirmationText] =
         <button
           type="button"
           className="button button--red"
-          onClick={resetAllEventData}
-          disabled={isSending}
+          onClick={resetEventData}
+          disabled={
+            isSending ||
+            !resetConfirmed ||
+            resetPin.trim() !== '1608'
+          }
         >
           {isSending
-            ? 'Suppression…'
-            : 'Confirmer le reset'}
+            ? 'Réinitialisation…'
+            : 'Confirmer la réinitialisation'}
         </button>
       </div>
     </div>
   )}
 </section>
+
       <p className="command-connection">
         {supabaseEnabled
           ? '● Tour de contrôle connectée'

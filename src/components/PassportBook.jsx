@@ -20,9 +20,19 @@ export default function PassportBook({
         <h2>Passeport de voyage</h2>
 
         <div className="passport-photo-placeholder">
-          <span>✈</span>
-          <small>VOYAGEUR</small>
-        </div>
+  {participant.avatarUrl || participant.avatar_url ? (
+    <img
+      src={participant.avatarUrl || participant.avatar_url}
+      alt={`Photo de ${participant.firstName}`}
+      className="passport-photo"
+    />
+  ) : (
+    <>
+      <span>✈</span>
+      <small>VOYAGEUR</small>
+    </>
+  )}
+</div>
 
         <dl className="passport-identity">
           <div><dt>Nom</dt><dd>{participant.lastName}</dd></div>
@@ -34,6 +44,61 @@ export default function PassportBook({
             <dd>{passportFinalized ? 'Voyage terminé' : 'Voyageur en activité'}</dd>
           </div>
         </dl>
+
+        {participant.members?.length > 1 && (
+  <section className="passport-travelers">
+    <div className="passport-travelers__heading">
+      <span>👨‍👩‍👧‍👦</span>
+      <div>
+        <small>Voyageurs enregistrés</small>
+        <strong>
+          {participant.members.length} voyageurs sur ce passeport
+        </strong>
+      </div>
+    </div>
+
+    <div className="passport-travelers__grid">
+      {participant.members.map((traveler, index) => {
+        const initials = `${traveler.firstName?.[0] || ''}${
+          traveler.lastName?.[0] || ''
+        }`.toUpperCase()
+
+        const isMainTraveler = index === 0
+
+        return (
+          <article
+            className="passport-traveler"
+            key={`${traveler.firstName}-${traveler.lastName}-${index}`}
+          >
+            <div className="passport-traveler__avatar">
+              {isMainTraveler &&
+              (participant.avatarUrl || participant.avatar_url) ? (
+                <img
+                  src={participant.avatarUrl || participant.avatar_url}
+                  alt={`Photo de ${traveler.firstName}`}
+                />
+              ) : (
+                <span>{initials || '✈'}</span>
+              )}
+            </div>
+
+            <div className="passport-traveler__identity">
+              <strong>
+                {traveler.firstName} {traveler.lastName}
+              </strong>
+
+              <small>
+                {isMainTraveler
+                  ? 'Voyageur principal'
+                  : `Voyageur ${index + 1}`}
+              </small>
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  </section>
+)}
 
         <div className="passport-authority">
           <span>Autorité émettrice</span>
