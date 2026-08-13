@@ -45,6 +45,13 @@ export const AUTO_TOWER_MESSAGES = [
   
   export const PRESET_TOWER_MESSAGES = [
     {
+      id: 'opening-boarding',
+      icon: '🛫',
+      label: 'Ouverture du bal',
+      title: 'Ouverture de l’embarquement',
+      text: 'Les passagers du vol PK 1608 sont invités à se préparer : l’embarquement débutera dans quelques instants.',
+    },
+    {
       id: 'pizzas-oven',
       icon: '🍕',
       label: 'Pizzas au four',
