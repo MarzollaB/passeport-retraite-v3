@@ -80,27 +80,6 @@ export const AUTO_TOWER_MESSAGES = [
       text: 'Patricia Airlines vous informe que le bar reste officiellement ouvert. Les passagers peuvent toujours se présenter au comptoir. Voyagez avec modération, mais profitez pleinement de l’escale.',
     },
     {
-      id: 'group-photo',
-      icon: '📸',
-      label: 'Photo de groupe',
-      title: 'Photo officielle du vol PK 1608',
-      text: 'Appel à tous les passagers du vol PK 1608 : rassemblement immédiat pour la photo officielle. Merci de rejoindre la zone photo avec votre plus beau sourire.',
-    },
-    {
-      id: 'special-moment',
-      icon: '🥂',
-      label: 'Moment spécial',
-      title: 'Moment spécial à bord',
-      text: 'Mesdames et messieurs, nous vous invitons à suspendre momentanément vos activités. Un moment spécial se prépare à bord. Merci de vous rapprocher de la zone principale.',
-    },
-    {
-      id: 'make-room',
-      icon: '📢',
-      label: 'Faites de la place',
-      title: 'Libération de la piste',
-      text: 'Avis aux passagers : merci de dégager la piste principale pendant quelques instants. Une opération hautement stratégique est sur le point de commencer.',
-    },
-    {
       id: 'missions-resume',
       icon: '🛫',
       label: 'Reprise missions',
