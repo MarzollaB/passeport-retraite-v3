@@ -20,7 +20,7 @@ export const AUTO_TOWER_MESSAGES = [
     {
       id: 'shared-memories',
       icon: '❤️',
-      title: 'Patricia Airlines',
+      title: 'PK Airlines',
       text: 'Les plus beaux souvenirs sont ceux que l’on partage.',
     },
     {
@@ -56,7 +56,7 @@ export const AUTO_TOWER_MESSAGES = [
       icon: '🍕',
       label: 'Pizzas au four',
       title: 'Pizzas au four',
-      text: 'Mesdames et messieurs, votre attention s’il vous plaît. Le service de restauration Patricia Airlines vous informe que les pizzas sont actuellement au four. Merci de patienter encore quelques instants avant l’ouverture de l’embarquement gourmand.',
+      text: 'Mesdames et messieurs, votre attention s’il vous plaît. Le service de restauration PK Airlines vous informe que les pizzas sont actuellement au four. Merci de patienter encore quelques instants avant l’ouverture de l’embarquement gourmand.',
     },
     {
       id: 'pizzas-ready',
@@ -77,14 +77,14 @@ export const AUTO_TOWER_MESSAGES = [
       icon: '🍷',
       label: 'Bar ouvert',
       title: 'Bar ouvert',
-      text: 'Patricia Airlines vous informe que le bar reste officiellement ouvert. Les passagers peuvent toujours se présenter au comptoir. Voyagez avec modération, mais profitez pleinement de l’escale.',
+      text: 'PK Airlines vous informe que le bar reste officiellement ouvert. Les passagers peuvent toujours se présenter au comptoir. Voyagez avec modération, mais profitez pleinement de l’escale.',
     },
     {
       id: 'missions-resume',
       icon: '🛫',
       label: 'Reprise missions',
       title: 'Reprise des missions',
-      text: 'Votre attention s’il vous plaît. Les missions Patricia Airlines reprennent. Consultez votre passeport : une nouvelle destination pourrait bientôt vous être proposée.',
+      text: 'Votre attention s’il vous plaît. Les missions PK Airlines reprennent. Consultez votre passeport : une nouvelle destination pourrait bientôt vous être proposée.',
     },
     {
       id: 'missions-pause',

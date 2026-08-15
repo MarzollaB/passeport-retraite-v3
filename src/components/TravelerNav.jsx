@@ -34,7 +34,7 @@ export default function TravelerNav({
       <nav className="traveler-nav">
         <div className="traveler-nav__brand">
           <span>✈</span>
-          <strong>PATRICIA AIRLINES</strong>
+          <strong>PK AIRLINES</strong>
           <small>VOL PK 1608</small>
         </div>
 

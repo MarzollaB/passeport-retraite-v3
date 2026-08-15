@@ -1194,7 +1194,7 @@ if (hasIncompleteAdditionalTraveler) {
             <br />
             RETRAITE
           </div>
-          <p className="hero__airline">PATRICIA AIRLINES · VOL PK 1608</p>
+          <p className="hero__airline">PK AIRLINES · VOL PK 1608</p>
           <p className="hero__eyebrow">Bienvenue à bord</p>
           <h1>
             Le Passeport
@@ -1823,7 +1823,7 @@ if (hasIncompleteAdditionalTraveler) {
 
           <section className="boarding-pass">
             <div className="boarding-pass__header">
-              <span>PATRICIA AIRLINES</span>
+              <span>PK AIRLINES</span>
               <strong>MISSION</strong>
             </div>
             <div className="boarding-pass__body">

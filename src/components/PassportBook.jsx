@@ -17,7 +17,7 @@ export default function PassportBook({
 
       <article className="passport-page passport-page--identity">
         <div className="passport-page__watermark">✦</div>
-        <p className="passport-page__heading">Patricia Airlines</p>
+        <p className="passport-page__heading">PK Airlines</p>
         <h2>Passeport de voyage</h2>
 
         <button
@@ -108,7 +108,7 @@ export default function PassportBook({
 
         <div className="passport-authority">
           <span>Autorité émettrice</span>
-          <strong>Patricia Airlines</strong>
+          <strong>PK Airlines</strong>
           <small>Émis le 16 août 2026</small>
         </div>
 

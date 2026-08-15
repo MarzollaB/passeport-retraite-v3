@@ -193,7 +193,7 @@ const hasNextPrivateMessages =
   {journalPageIndex === 0 && (
     <p className="mimou-intro">
       Des souvenirs, des anecdotes et quelques mots
-      laissés par les voyageurs de Patricia Airlines.
+      laissés par les voyageurs de PK Airlines.
     </p>
   )}
 
@@ -456,7 +456,7 @@ const hasNextPrivateMessages =
             <div className="mimou-back-cover__content">
               <span>✈</span>
 
-              <p>Patricia Airlines</p>
+              <p>PK Airlines</p>
 
               <h2>
                 Bien travailler,
