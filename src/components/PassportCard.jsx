@@ -4,7 +4,7 @@ export default function PassportCard({ participant, passportNumber }) {
       <div className="passport-card__cover">
         <div className="passport-emblem">✦</div>
         <p>PASSEPORT</p>
-        <h2>PATRICIA AIRLINES</h2>
+        <h2>PK AIRLINES</h2>
         <span>VISA RETRAITE</span>
       </div>
 

@@ -41,7 +41,7 @@ export const ANNOUNCEMENTS = [
     },
     {
       id: 'airport-01',
-      text: 'Patricia Airlines vous souhaite une excellente soirée.',
+      text: 'PK Airlines vous souhaite une excellente soirée.',
     },
     {
       id: 'airport-02',

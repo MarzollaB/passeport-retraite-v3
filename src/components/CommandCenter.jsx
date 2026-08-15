@@ -137,7 +137,7 @@ export default function CommandCenter({
     <main className="command-center">
       <header className="command-center__header">
         <div>
-          <small>PATRICIA AIRLINES</small>
+          <small>PK AIRLINES</small>
           <h1>Poste de commandement</h1>
         </div>
 

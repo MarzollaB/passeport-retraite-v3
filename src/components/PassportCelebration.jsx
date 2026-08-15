@@ -18,7 +18,7 @@ export default function PassportCelebration() {
       </div>
 
       <div className="passport-celebration__stamp">
-        <small>Patricia Airlines</small>
+        <small>PK Airlines</small>
         <strong>PASSEPORT</strong>
         <span>VALIDÉ</span>
         <b>16 AOÛT 2026</b>

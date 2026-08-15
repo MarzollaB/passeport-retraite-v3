@@ -172,7 +172,7 @@ export default function TowerScreen({
           <span className="tower-header__plane">✈</span>
 
           <div>
-            <small>PATRICIA AIRLINES</small>
+            <small>PK AIRLINES</small>
             <h1>Tour de contrôle</h1>
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function TowerScreen({
 
       <footer className="tower-footer">
         <div>
-          <strong>Patricia Airlines © 2026</strong>
+          <strong>PK Airlines © 2026</strong>
 
           <p>
             Un voyage se mesure moins en kilomètres

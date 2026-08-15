@@ -34,7 +34,7 @@ export default function FlightBoard({
     <section className={`flight-board ${statusClass}`}>
       <header className="flight-board__header">
         <div>
-          <small>PATRICIA AIRLINES</small>
+          <small>PK AIRLINES</small>
           <strong>TABLEAU DES EMBARQUEMENTS</strong>
         </div>
         <span>✈</span>

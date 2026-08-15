@@ -11,7 +11,7 @@ export default function SplashScreen({
       <div className="boarding-card">
         <div className="boarding-logo">✈</div>
 
-        <h2>Patricia Airlines</h2>
+        <h2>PK Airlines</h2>
 
         <h1>Le Passeport de Patricia</h1>
 
