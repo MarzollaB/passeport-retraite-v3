@@ -326,6 +326,68 @@ const [showUserMenu, setShowUserMenu] = useState(false);
       window.clearInterval(interval);
     };
   }, [adminUnlocked]);
+  useEffect(() => {
+    if (!supabaseEnabled || currentPath !== '/tower') {
+      return undefined
+    }
+  
+    let active = true
+  
+    async function refreshTowerStats() {
+      try {
+        const [
+          participantsResult,
+          missionsResult,
+          passportsResult,
+          memoriesResult,
+        ] = await Promise.all([
+          supabase
+            .from('participants')
+            .select('*', { count: 'exact', head: true }),
+  
+          supabase
+            .from('mission_assignments')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'completed'),
+  
+          supabase
+            .from('participants')
+            .select('*', { count: 'exact', head: true })
+            .eq('passport_finalized', true),
+  
+          supabase
+            .from('journal_entries')
+            .select('*', { count: 'exact', head: true }),
+        ])
+  
+        if (!active) return
+  
+        setTowerStats({
+          participants: participantsResult.count || 0,
+          missions: missionsResult.count || 0,
+          passports: passportsResult.count || 0,
+          memories: memoriesResult.count || 0,
+        })
+      } catch (error) {
+        console.error(
+          'Impossible de mettre à jour les statistiques de la tour :',
+          error
+        )
+      }
+    }
+  
+    refreshTowerStats()
+  
+    const interval = window.setInterval(
+      refreshTowerStats,
+      5000
+    )
+  
+    return () => {
+      active = false
+      window.clearInterval(interval)
+    }
+  }, [currentPath])
 
   const cooldownSeconds = useMemo(() => {
     if (!appState.cooldownUntil) return 0;

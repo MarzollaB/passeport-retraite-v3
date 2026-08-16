@@ -31,49 +31,13 @@ function playAirportChime() {
   })
 }
 
-async function playAirportAnnouncement(src) {
-  const AudioContext =
-    window.AudioContext || window.webkitAudioContext
+function playAirportAnnouncement(src) {
+  const audio = new Audio(src)
 
-  if (!AudioContext) {
-    const audio = new Audio(src)
-    audio.play()
-    return
-  }
+  audio.volume = 1
 
-  const context = new AudioContext()
-
-  const response = await fetch(src)
-  const arrayBuffer = await response.arrayBuffer()
-  const audioBuffer = await context.decodeAudioData(arrayBuffer)
-
-  const source = context.createBufferSource()
-  source.buffer = audioBuffer
-
-  const highPass = context.createBiquadFilter()
-  highPass.type = 'highpass'
-  highPass.frequency.value = 260
-
-  const lowPass = context.createBiquadFilter()
-  lowPass.type = 'lowpass'
-  lowPass.frequency.value = 3600
-
-  const compressor = context.createDynamicsCompressor()
-  compressor.threshold.value = -28
-  compressor.knee.value = 12
-  compressor.ratio.value = 6
-  compressor.attack.value = 0.005
-  compressor.release.value = 0.18
-
-  source
-    .connect(highPass)
-    .connect(lowPass)
-    .connect(compressor)
-    .connect(context.destination)
-
-  source.start()
+  return audio.play()
 }
-
 export default function TowerScreen({
   eventRunning,
   towerMessage,
