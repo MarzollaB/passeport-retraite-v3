@@ -144,7 +144,7 @@ const hasNextPrivateMessages =
           minHeight={430}
           maxHeight={700}
           showCover
-          mobileScrollSupport
+          mobileScrollSupport={false}
           disableFlipByClick
           className="mimou-book"
         >
