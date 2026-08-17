@@ -2375,7 +2375,7 @@ body:has(.traveler-nav-shell) .toast {
   .mimou-entry-list {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow: hidden;
     padding-right: 0.35rem;
   }
   
@@ -2814,7 +2814,9 @@ body:has(.traveler-nav-shell) .toast {
 
    .mimou-page {
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
   }
   
   .mimou-background-collage {
