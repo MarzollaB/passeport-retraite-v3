@@ -105,18 +105,18 @@ const hasPreviousJournalPages =
 const hasNextJournalPages =
   journalWindowStart + 10 < journalEntries.length
 
-const privateWindowStart = privatePageIndex * 6
+const privateWindowStart = privatePageIndex * 2
 
 const visiblePrivateMessages = privateMessages.slice(
   privateWindowStart,
-  privateWindowStart + 6
+  privateWindowStart + 2
 )
 
 const hasPreviousPrivateMessages =
   privatePageIndex > 0
 
 const hasNextPrivateMessages =
-  privateWindowStart + 6 < privateMessages.length
+  privateWindowStart + 2 < privateMessages.length
 
   return (
     <main className="mimou-page">
@@ -388,7 +388,13 @@ const hasNextPrivateMessages =
                 </button>
               </div>
             ) : (
-              <div className="mimou-entry-list">
+              <div
+  className="mimou-entry-list"
+  style={{
+    maxHeight: '430px',
+    overflowY: 'auto'
+  }}
+>
   {visiblePrivateMessages.length === 0 ? (
     <p className="mimou-empty">
       Aucun petit mot privé pour le moment.
