@@ -1178,7 +1178,12 @@ if (hasIncompleteAdditionalTraveler) {
       });
 
       if (error) {
-        setToast('Le message privé n’a pas pu être enregistré.');
+        console.error('ERREUR MESSAGE PRIVÉ :', error);
+      
+        setToast(
+          `Erreur : ${error.message || error.details || 'Enregistrement impossible'}`
+        );
+      
         return;
       }
     } else {
