@@ -18,7 +18,13 @@ import { PRELOADED_GUESTS } from './data/guests';
 import { MISSIONS } from './data/missions';
 import { PASSPORT_DESTINATIONS } from './data/destinations';
 import { CONFIG } from './lib/config';
-import { readLocal, writeLocal, clearLocal } from './lib/storage';
+import {
+  readLocal,
+  writeLocal,
+  clearLocal,
+  readPendingResponses,
+  writePendingResponses,
+} from './lib/storage';
 import { randomCooldownSeconds } from './lib/time';
 import { playStampSound, unlockSound } from './lib/sound';
 import { selectMission } from './lib/missionEngine';
@@ -170,6 +176,24 @@ const [showUserMenu, setShowUserMenu] = useState(false);
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (!supabaseEnabled) return undefined
+  
+    retryPendingResponses()
+  
+    const interval = window.setInterval(
+      retryPendingResponses,
+      15000
+    )
+  
+    window.addEventListener('online', retryPendingResponses)
+  
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('online', retryPendingResponses)
+    }
+  }, [])
 
   useEffect(() => {
     if (appState.journalEntries.length > previousJournalCount.current) {
@@ -766,16 +790,87 @@ if (hasIncompleteAdditionalTraveler) {
     setToast('Cette mission est mise de côté. Une autre pourra être tirée.');
   }
 
+  function queuePendingResponse(entry) {
+    const pendingResponses = readPendingResponses()
+  
+    const pendingResponse = {
+      id: entry.id,
+      participantId: participant.id,
+      missionId: currentMission.id,
+      authorName: `${participant.firstName} ${participant.lastName}`,
+      authorGroup: participant.groupName,
+      label: currentMission.journalLabel,
+      content: entry.text,
+      createdAt: entry.createdAt,
+    }
+  
+    writePendingResponses([
+      ...pendingResponses,
+      pendingResponse,
+    ])
+  }
+
+  async function retryPendingResponses() {
+    if (!supabaseEnabled) return
+  
+    const pendingResponses = readPendingResponses()
+  
+    if (!pendingResponses.length) return
+  
+    const stillPending = []
+    let sentCount = 0
+  
+    for (const response of pendingResponses) {
+      const { error } = await supabase
+        .from('journal_entries')
+        .upsert(
+          {
+            id: response.id,
+            participant_id: response.participantId,
+            mission_id: response.missionId,
+            author_name: response.authorName,
+            author_group: response.authorGroup,
+            label: response.label,
+            content: response.content,
+            created_at: response.createdAt,
+          },
+          { onConflict: 'id' }
+        )
+  
+      if (error) {
+        stillPending.push(response)
+      } else {
+        sentCount += 1
+      }
+    }
+  
+    writePendingResponses(stillPending)
+  
+    if (sentCount > 0) {
+      setToast(
+        sentCount === 1
+          ? 'Votre réponse a bien été envoyée.'
+          : `${sentCount} réponses en attente ont bien été envoyées.`
+      )
+    }
+  }
+
   async function addJournalEntry(entry) {
     if (supabaseEnabled) {
-      const { error } = await supabase.from('journal_entries').insert({
-        participant_id: participant.id,
-        mission_id: currentMission.id,
-        author_name: `${participant.firstName} ${participant.lastName}`,
-        author_group: participant.groupName,
-        label: currentMission.journalLabel,
-        content: entry.text,
-      });
+      const { error } = await supabase
+  .from('journal_entries')
+  .upsert(
+    {
+      id: entry.id,
+      participant_id: participant.id,
+      mission_id: currentMission.id,
+      author_name: `${participant.firstName} ${participant.lastName}`,
+      author_group: participant.groupName,
+      label: currentMission.journalLabel,
+      content: entry.text,
+    },
+    { onConflict: 'id' }
+  );
       if (error) throw error;
       return;
     }
@@ -861,9 +956,13 @@ if (hasIncompleteAdditionalTraveler) {
           'Mission accomplie : le carnet de Patricia vient de s’enrichir.'
         );
       }
-    } catch {
+    } catch (error) {
+      console.error('ERREUR ENREGISTREMENT MISSION :', error);
+    
+      queuePendingResponse(entry);
+    
       setToast(
-        'La réponse n’a pas pu être enregistrée. Vérifiez la connexion et recommencez.'
+        'Votre réponse est en cours d’envoi. Elle sera transmise dès que la connexion le permettra.'
       );
     }
   }
