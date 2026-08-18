@@ -470,6 +470,10 @@ const hasNextPrivateMessages =
                 bien s’amuser.
               </h2>
 
+              <p className="mimou-back-cover__quote">
+              Pépère Kenty
+              </p>
+
               <small>Vol PK 1608</small>
             </div>
           </BookPage>

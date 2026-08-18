@@ -2564,6 +2564,13 @@ body:has(.traveler-nav-shell) .toast {
     align-items: center;
     text-align: center;
   }
+
+  .mimou-back-cover__quote {
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    opacity: 0.85;
+  }
   
   .mimou-back-cover__content > span {
     margin-bottom: 1.2rem;
