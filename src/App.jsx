@@ -1168,6 +1168,8 @@ if (hasIncompleteAdditionalTraveler) {
       content: privateMessage.trim(),
       createdAt: new Date().toISOString(),
     };
+    
+    await persistParticipant(participant);
 
     if (supabaseEnabled) {
       const { error } = await supabase.from('private_messages').insert({
