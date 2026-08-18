@@ -24,3 +24,25 @@ export function clearLocal() {
     // Rien à faire.
   }
 }
+export function readPendingResponses() {
+  try {
+    const value = window.localStorage.getItem(
+      'patricia-airlines:pending-responses'
+    )
+
+    return value ? JSON.parse(value) : []
+  } catch {
+    return []
+  }
+}
+
+export function writePendingResponses(responses) {
+  try {
+    window.localStorage.setItem(
+      'patricia-airlines:pending-responses',
+      JSON.stringify(responses)
+    )
+  } catch {
+    // La file d’attente reste locale et facultative.
+  }
+}
