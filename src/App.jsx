@@ -173,9 +173,12 @@ const [showUserMenu, setShowUserMenu] = useState(false);
   }, [participant])
 
   useEffect(() => {
+    if (currentPath === '/mimou') return undefined;
+  
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
+  
     return () => window.clearInterval(interval);
-  }, []);
+  }, [currentPath]);
 
   useEffect(() => {
     if (!supabaseEnabled) return undefined

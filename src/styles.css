@@ -2375,7 +2375,9 @@ body:has(.traveler-nav-shell) .toast {
   .mimou-entry-list {
     flex: 1;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
     padding-right: 0.35rem;
   }
   
@@ -2417,6 +2419,17 @@ body:has(.traveler-nav-shell) .toast {
   
   .mimou-entry footer strong {
     color: #063f43;
+  }
+
+  .mimou-entry__question {
+    margin: 0.35rem 0 0.55rem;
+    padding: 0.45rem 0.6rem;
+    border-left: 3px solid rgba(170, 127, 44, 0.8);
+    background: rgba(170, 127, 44, 0.08);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    font-weight: 700;
+    font-style: italic;
   }
   
   .mimou-empty {
@@ -2822,7 +2835,7 @@ body:has(.traveler-nav-shell) .toast {
    .mimou-page {
     position: relative;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: visible;
     min-height: 100vh;
   }
   

@@ -2,6 +2,7 @@ import { forwardRef, useEffect, useState } from 'react'
 import HTMLFlipBook from 'react-pageflip'
 import { CONFIG } from '../lib/config'
 import { supabase, supabaseEnabled } from '../lib/supabase'
+import { MISSIONS } from '../data/missions'
 
 const BookPage = forwardRef(function BookPage(
   { children, className = '' },
@@ -31,6 +32,16 @@ export default function MimouPage() {
   const [error, setError] = useState('')
   const [journalPageIndex, setJournalPageIndex] = useState(0)
   const [privatePageIndex, setPrivatePageIndex] = useState(0)
+
+  function getMissionQuestion(missionId) {
+    if (!missionId) return null
+  
+    const mission = MISSIONS.find(
+      item => item.id === missionId
+    )
+  
+    return mission?.prompt || null
+  }
 
   useEffect(() => {
     if (!supabaseEnabled) return
@@ -136,15 +147,16 @@ const hasNextPrivateMessages =
       <div className="mimou-book-wrapper">
 
         <HTMLFlipBook
-          width={430}
-          height={620}
-          size="stretch"
+          width={375}
+          height={540}
+          size="fixed"
           minWidth={290}
           maxWidth={480}
           minHeight={430}
           maxHeight={700}
           showCover
           mobileScrollSupport={false}
+          showPageCorners={false}
           disableFlipByClick
           className="mimou-book"
         >
@@ -210,10 +222,16 @@ const hasNextPrivateMessages =
           key={entry.id}
         >
           {entry.label && (
-            <small>{entry.label}</small>
-          )}
+  <small>{entry.label}</small>
+)}
 
-          <p>{entry.content}</p>
+{getMissionQuestion(entry.mission_id) && (
+  <p className="mimou-entry__question">
+    {getMissionQuestion(entry.mission_id)}
+  </p>
+)}
+
+<p>{entry.content}</p>
 
           <footer>
             <strong>
@@ -258,10 +276,16 @@ const hasNextPrivateMessages =
           key={entry.id}
         >
           {entry.label && (
-            <small>{entry.label}</small>
-          )}
+  <small>{entry.label}</small>
+)}
 
-          <p>{entry.content}</p>
+{getMissionQuestion(entry.mission_id) && (
+  <p className="mimou-entry__question">
+    {getMissionQuestion(entry.mission_id)}
+  </p>
+)}
+
+<p>{entry.content}</p>
 
           <footer>
             <strong>
@@ -394,6 +418,7 @@ const hasNextPrivateMessages =
     maxHeight: '430px',
     overflowY: 'auto'
   }}
+  onWheel={(event) => event.stopPropagation()}
 >
   {visiblePrivateMessages.length === 0 ? (
     <p className="mimou-empty">
